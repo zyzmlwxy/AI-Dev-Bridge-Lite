@@ -1,0 +1,20 @@
+# Local agent state
+.workbuddy/
+.ai-local/
+
+# Secrets and local environment
+.ssh/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Generated build outputs and logs
+build/
+dist/
+*.log
+
+# OS/editor debris
+.DS_Store
+Thumbs.db
