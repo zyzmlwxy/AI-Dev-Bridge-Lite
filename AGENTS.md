@@ -1,4 +1,4 @@
-# AI Dev Bridge Lite V1.0 — 单文件协作启动协议
+# AI Dev Bridge Lite V1.1 — 单文件协作启动协议
 
 > 把本文件作为 `AGENTS.md` 放在任意 GitHub 项目仓库根目录，然后分别让 ChatGPT 与 WorkBuddy 读取它。本文件可独立使用，不依赖这个模板的来源仓库或任何外部运行服务。
 >
@@ -51,7 +51,7 @@
 
 ```markdown
 # Project Status
-Status: READY / CODE_READY / TESTING / VERIFIED / BLOCKED / AWAITING_APPROVAL
+Status: READY / CODE_READY / TESTING / REVIEW_PENDING / FIX_REQUIRED / BLOCKED / VERIFIED / AWAITING_APPROVAL / DONE
 Repository: <owner/repo>
 Base branch: <real branch>
 Current task: <issue or PR link>
@@ -113,6 +113,122 @@ Remaining issues: <none or specifics>
 - 新会话必须从 GitHub 获取最新 `AGENTS.md`、`PROJECT_CONFIG.md`、`PROJECT_STATUS.md`、关联 Issue/PR/提交及报告；报告与项目状态冲突时，以真实 GitHub 提交和执行证据为准，标注未解决的矛盾。
 - 本协议与项目特有规范有冲突时，应先识别并明确处理冲突，不以通用模板覆盖项目原有强制要求。
 
-## 7. V1.0 的适用范围
+## 7. V1.1：标准化任务状态与低摩擦交接
 
-V1.0 已验证的基础能力是 GitHub 双向交接、Git + SSH 报告回传，以及在具备合适编译器的实际 Windows 环境中执行一个小型 C++11 测试。新仓库仍须独立确认权限、编译、测试与部署能力。它**不是**自动调度平台，也不保证任意项目无需配置即可完成实际业务测试。
+本节是 V1.0 的兼容扩展。**仍只需复制本 AGENTS.md 即可启用**；下述状态文本和交接块直接放在已有的 Issue、PR 和状态文件中，不要求安装新的工具或创建外部服务。
+
+### 7.1 任务标识和状态
+
+- 一个 Issue 代表一项需求，一个关联 PR 代表一次待审代码／配置变更；已有 Issue / PR 时先复用，不为了“重新开始”重复创建。
+- `.ai-collab/PROJECT_STATUS.md` 是**项目当前状态摘要**，不是详细日志；多个并行任务必须分别保留自己的 Issue / PR 状态和受测 SHA，不得混写。
+- 统一任务状态（只表示有证据支持的阶段，不表示 AI 在后台实时运行）：
+
+| 状态 | 含义 | 下一步责任方 |
+| --- | --- | --- |
+| `READY` | 需求、范围和验收标准已确认 | ChatGPT 编码／准备 PR |
+| `CODE_READY` | PR 已含待执行变更及可核对的 HEAD | WorkBuddy 领取执行 |
+| `TESTING` | WorkBuddy 已明确接手某个受测 SHA；不是推测其正在运行 | WorkBuddy 执行 |
+| `REVIEW_PENDING` | 执行报告已写回 GitHub，尚待核查 | ChatGPT 检查证据 |
+| `FIX_REQUIRED` | 真实失败或验收不满足，需修改并重新提交 | ChatGPT 修复 |
+| `BLOCKED` | 权限、工具、环境或外部依赖阻止执行，需说明解除条件 | 指定责任人 |
+| `VERIFIED` | ChatGPT 已根据实际证据验收**指定代码 SHA** | 用户审核 |
+| `AWAITING_APPROVAL` | 技术验收已完成，等待用户合并／发布决定 | 用户 |
+| `DONE` | 已完成授权的合并及本任务验收；部署另算 | 无 |
+
+- 常规路径：`READY → CODE_READY → TESTING → REVIEW_PENDING → VERIFIED → AWAITING_APPROVAL → DONE`。
+- 报告 FAIL 或技术复核失败：`TESTING/REVIEW_PENDING → FIX_REQUIRED → CODE_READY`。**每次修复源码、测试或影响构建的配置，都要生成新的待测 SHA，重新执行受影响测试。**
+- 权限或环境不足：`READY/CODE_READY/TESTING → BLOCKED`；解除阻塞后回到可核对的上一阶段，不把权限恢复等同于测试通过。
+- 新 HEAD 仅包含 WorkBuddy 的去敏报告时，可以在核对差异后继续审查原受测 SHA；**任意其他实质变更不得自动继承之前的 PASS**。
+- 未真正观察到执行中信息时，仍记 `CODE_READY`；不得因为发出指令就擅自写 `TESTING`。状态更新由 ChatGPT 根据 GitHub 已存在的证据完成；WorkBuddy 只需按第 7.3 节写回报告。
+
+### 7.2 一段式 PR 交接卡
+
+ChatGPT 创建或更新 PR 时，在 **PR 描述中**加入下列可复制的最小交接块，并填写真实值；已有交接块则就地更新，不反复追加旧版本：
+
+```text
+[AI_DEV_BRIDGE_HANDOFF]
+Protocol: 1.1
+Issue: <Issue URL or N/A>
+PR: <full PR URL>
+Scope: <bounded task description>
+Acceptance: <specific passing checks>
+Build: <real command, N/A or UNKNOWN>
+Tests: <real command, N/A or UNKNOWN>
+Deployment: DISABLED
+[/AI_DEV_BRIDGE_HANDOFF]
+```
+
+- 用户向 WorkBuddy 发 **“执行此 PR：<PR URL>”** 即可；WorkBuddy 必须读取仓库根目录 `AGENTS.md`、PR 描述和当前分支内容，再自行查询**最新实际完整 40 位 HEAD SHA**。PR 描述、聊天里的旧 SHA 只是线索，不能当成最新状态。
+- 任务要求已经存在于仓库时不要重复向用户询问命令、链接和文件名。`UNKNOWN` 命令需先调查或回报 `BLOCKED`，不可假装执行。
+- WorkBuddy 报告写回后，用户可向 ChatGPT 发送 **“验收此 PR：<PR URL>”**；ChatGPT 应主动检查 PR 文件差异、报告文件和评论，优先从 GitHub 发现最新报告，**不要求用户再次手动提供报告路径**。若连接器确实无法列出或读取报告，明确说明限制后才索取补充信息。
+- 新会话中的两个 AI 均从此 PR、`AGENTS.md` 和状态文件恢复上下文，不使用某次旧聊天中的 SHA 替代实时远端引用。
+
+### 7.3 报告格式、尝试次数和去重
+
+WorkBuddy 在每次独立执行后写回如下报告。`Attempt` 是此 PR 第几次执行（从 1 开始）；相同 SHA 因真实环境问题重试也要增加 Attempt 并说明原因：
+
+```text
+[WORKBUDDY_EXECUTION_REPORT]
+Protocol: 1.1
+Repository: <owner/repo>
+PR: <PR URL>
+Attempt: <positive integer>
+Tested Commit SHA: <actual full 40-char SHA>
+Environment: <OS, toolchain/runtime versions>
+Build: PASS / FAIL / BLOCKED / N/A / NOT RUN
+Build command: <actually executed command or NOT RUN>
+Build exit code: <actual integer or NOT RUN>
+Tests: PASS / FAIL / BLOCKED / N/A / NOT RUN
+Test command: <actually executed command or NOT RUN>
+Test exit code: <actual integer or NOT RUN>
+Test output summary: <measured counts, failures or N/A>
+Failure category: NONE / CODE / TEST / ENVIRONMENT / PERMISSION / UNKNOWN
+Deployment: NOT ATTEMPTED
+Overall: PASS / FAIL / BLOCKED / UNKNOWN
+Evidence: <actual evidence, sanitized>
+Retry reason: <NONE or why the same SHA is tested again>
+Remaining issues: <NONE or precise blockers>
+```
+
+- 首选 PR 评论；若无评论权限但有 Git + SSH 推送权限，则在**相同 PR 工作分支**新增 `.ai-collab/reports/PR-<PR号>-<受测短SHA>-a<Attempt>.md`，只写去敏报告，不上传二进制或原始敏感日志。
+- 为兼容 V1.0，原有 `PR-<PR号>-<受测短SHA>.md` 仍可读取；后续新报告优先使用含 Attempt 的命名。
+- 提交报告前应检查相同 PR/SHA/Attempt 的报告是否已存在；已存在则**不要覆盖或重复推送**，先检查是否已正确回传。需要重新执行时递增 Attempt，保留失败证据。
+- 报告文本中 **Tested Commit SHA** 指实际检查的源代码提交；报告的 **Report Commit SHA** 应由 ChatGPT 在随后核对 GitHub 历史得出，不允许在报告里伪造未产生的提交。
+- WorkBuddy 既不能评论也不能推送时只返回 `BLOCKED` 与去敏错误，不尝试越权写入。只给用户一份可复制的报告，不能宣称“已提交到 GitHub”。
+- `PASS` 要求所有本轮明确规定的必要检查都有真实证据。`N/A`（不适用）、`NOT RUN`（没执行）、`BLOCKED`（执行条件不足）必须区分。
+
+### 7.4 失败修复与重测
+
+1. ChatGPT 阅读**最新有效报告**和之前的失败尝试，核实 `Tested Commit SHA`、变更列表、退出码、失败类别；证据不足时置 `UNKNOWN/BLOCKED`，不猜测根因。
+2. `CODE` 或 `TEST` 类问题由 ChatGPT 在同一任务 PR 工作分支做**最小范围修复**，增加必要回归用例，更新 PR 的交接块和状态为 `CODE_READY`；WorkBuddy 对**新 SHA** 重新构建／测试。
+3. `ENVIRONMENT` / `PERMISSION` 问题优先标记 `BLOCKED`，描述需要的工具或授权，不让 ChatGPT 为绕过环境问题而随意修改业务源码，也不擅自安装工具。
+4. 同一个 PR 若已连续 3 次尝试仍无法满足验收，默认升级为人工复核；用户可决定继续、缩小任务范围或停止。**本规则不是后台自动重试器**。
+5. 每轮报告保留历史；ChatGPT 在更新 `PROJECT_STATUS.md` 时只写当前结果、最新受测 SHA、报告位置和明确下一动作，不复制整份日志。
+6. 如果 WorkBuddy 上传报告时发现 PR HEAD 已因其他来源改变，应仍准确记录实际受测 SHA；ChatGPT 检查冲突和变更，必要时中止验收并要求基于新 HEAD 重新测试。
+7. 不得在没有用户明确批准时合并稳定分支、部署生产环境、重置或删除其他人的分支。
+
+### 7.5 状态文件的最小任务字段
+
+已有项目状态格式可继续使用，但建议将当前任务摘要规范为以下 Markdown 文本；不用外置 JSON 数据库：
+
+```text
+Protocol: 1.1
+Status: <one state from 7.1>
+Current task: <Issue URL>
+PR: <PR URL>
+Working branch: <branch>
+Tested commit: <full SHA or NOT_TESTED>
+Latest report: <path / PR comment / NONE>
+Attempt: <integer / 0>
+Last result: PASS / FAIL / BLOCKED / UNKNOWN / NOT RUN
+Next actor: ChatGPT / WorkBuddy / USER
+Next action: <single concrete step>
+Deployment: DISABLED
+```
+
+以上字段只是仓库内的可读事实索引，不构成 AI 间实时锁或自动任务队列。并发任务须使用独立的 Issue / PR，由 ChatGPT 主动核查 HEAD，**禁止并发强推**。
+
+## 8. V1.1 的适用范围
+
+V1.1 保留已验证的 V1.0 双向 GitHub 交接、Git + SSH 报告回传与 C++11 冒烟测试基础；新增规范化任务状态、简短交接和有证据的失败重试约定。**新增规则只有通过独立执行端验证后才可声称经过实测**。没有自动调度、后台互相唤醒或已验证的生产部署功能。
+
