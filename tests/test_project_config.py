@@ -10,6 +10,7 @@ from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = REPOSITORY_ROOT / ".ai-collab" / "PROJECT_CONFIG.json"
+CONFIG_DOC_PATH = REPOSITORY_ROOT / ".ai-collab" / "PROJECT_CONFIG.md"
 
 EXPECTED_KEYS = {
     "schema_version",
@@ -63,6 +64,25 @@ class ProjectConfigTests(unittest.TestCase):
         self.assertIsNone(self.config["workspace_root"])
         self.assertIsNone(self.config["working_directory"])
         self.assertEqual(self.config["deployment"], "DISABLED")
+
+    def test_human_readable_policy_mirrors_safety_critical_values(self):
+        with CONFIG_DOC_PATH.open("r", encoding="utf-8") as doc_file:
+            markdown = doc_file.read()
+
+        expected_rows = (
+            '| `repository_allowlist` | `["zyzmlwxy/AI-Dev-Bridge-Lite"]` |',
+            "| `execution_enabled` | `false` |",
+            "| `workspace_profile` | `UNCONFIGURED` |",
+            "| `workspace_root` | `null` |",
+            "| `allowed_commands` | `[]` |",
+            "| `working_directory` | `null` |",
+            '| `writable_paths` | `[".ai-collab/reports/"]` |',
+            "| `deployment` | `DISABLED` |",
+        )
+
+        for row in expected_rows:
+            with self.subTest(row=row):
+                self.assertIn(row, markdown)
 
     def test_timeout_is_a_bounded_positive_integer(self):
         timeout = self.config["command_timeout_seconds"]
