@@ -1,6 +1,6 @@
 # AI Dev Bridge Lite
 
-**单文件手动接入、可选 GitHub 自动通知的 ChatGPT × WorkBuddy 协作协议（V1.2.0）。**
+**单文件手动接入、可选 GitHub 通知与执行证据预审的 ChatGPT × WorkBuddy 协作协议（V1.3.0）。**
 
 [English](README.en.md) · [快速开始](#快速开始) · [协作流程](#协作流程) · [安全边界](#安全边界)
 
@@ -128,7 +128,7 @@ V1.2 在 V1.1 的一链接交接之上，尝试进一步降低人工催促：由
 
 **V1.2 实测结果：** WorkBuddy 在 Windows 11 / Python 3.13.14 环境执行语法检查与 18/18 单测，GitHub CI 同样 18/18 通过；GitHub Actions 实际发布 `CODE_READY` 和报告回传后的 `REVIEW_PENDING` 评论，按完整 SHA 去重也已验证。原先的 403 由用户批准的**工作流局部** `pull-requests: write` 调整解决，没有修改仓库全局权限。见 [PR #7 验收记录](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/pull/7#issuecomment-6407513665)。若目标仓库 Actions 禁用或缺权限，照旧按 V1.1 手动交接。
 
-## V1.3 候选：自动报告证据预审
+## V1.3：自动报告证据预审
 
 V1.2 已能在 PR 变更时自动评论提醒处理者。V1.3 进一步增加一个**可选的只读 GitHub Actions 证据门禁**，让用户或 ChatGPT 直接从 PR Checks 看到报告是否满足基本可核验条件。
 
@@ -142,7 +142,7 @@ V1.2 已能在 PR 变更时自动评论提醒处理者。V1.3 进一步增加一
 
 例如 WorkBuddy 已经在 `abc...` 提交上跑完真实测试，随后提交 `PR-12-abc....-a1.md`。GitHub 会检查该报告的完整受测 SHA、Attempt、退出码，以及受测 SHA 到上传报告的新 HEAD 之间是否真的只有新增报告文件。若有人在此期间又改了 `src/` 文件，预审会失败并要求重新确认，不会沿用旧报告。
 
-**此阶段仍需要你主动打开 WorkBuddy / ChatGPT。** 没有 Agent API 连接就无法自动唤醒；V1.3 减少的是人工检查和交接证据的步骤，不是宣称无人值守开发。初步离线/Actions 结果必须通过真实联调才能标为已验证。
+**此阶段仍需要你主动打开 WorkBuddy / ChatGPT。** 没有 Agent API 连接就无法自动唤醒；V1.3 减少的是人工检查和交接证据的步骤，不是宣称无人值守开发。该功能已通过真实联调：WorkBuddy 在 Windows 11 / Python 3.13.14 对修复后的源码执行语法检查、V1.3 **33/33** 项和 V1.2 **18/18** 项测试（退出码均为 0），报告-only 提交由 GitHub Actions 核对后输出 `EVIDENCE_READY`，并自动发布 `REVIEW_PENDING` 评论。此前发现的四项代码审查问题均已处理并通过复测。参见 [PR #11 技术验收](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/pull/11#issuecomment-6409808855) 与 [实际证据门禁运行](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/actions/runs/40276981012)。这是报告元数据及 Git SHA 谱系验证，**不代表自动确认报告内容真实或自动唤醒 AI**。
 
 ## 跨会话恢复
 
