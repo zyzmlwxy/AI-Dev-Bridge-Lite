@@ -1,6 +1,6 @@
 # AI Dev Bridge Lite
 
-**零服务、单文件启动的 ChatGPT × WorkBuddy GitHub 开发协作协议。**
+**零服务、单文件启动的 ChatGPT × WorkBuddy GitHub 开发协作协议（V1.1）。**
 
 [English](README.en.md) · [快速开始](#快速开始) · [协作流程](#协作流程) · [安全边界](#安全边界)
 
@@ -73,6 +73,38 @@ WorkBuddy 的 GitHub 连接器是否能读写 Private 仓库取决于实际授�
 
 首次密钥配置只提交**公钥**到 GitHub 网页，绝不提交私钥。已配置的同一账号 SSH 通道可以在具备访问权限的其他项目中复用。
 
+## V1.1：一个 PR 链接完成交接
+
+V1.1 在 V1.0 的单文件协作基础上，加入**标准任务状态、简短交接卡、失败分类和可追踪的重试尝试**。无需新增服务，双方仍由用户主动启动。
+
+现在日常开发可以这样做：
+
+1. 给 ChatGPT 提需求，由它创建 Issue、工作分支和 PR，并在 PR 描述中写入 `[AI_DEV_BRIDGE_HANDOFF]`，包含任务范围、验收标准、实际编译／测试命令。
+2. 对 WorkBuddy 只需发送：**“执行此 PR：https://github.com/OWNER/REPO/pull/12”**。它按 `AGENTS.md` 自行获取最新完整 SHA，运行任务并回传报告。
+3. 回来对 ChatGPT 只需发送：**“验收此 PR：https://github.com/OWNER/REPO/pull/12”**。它自行检查 PR 差异、评论与 `.ai-collab/reports/`，核对实际受测版本和报告。
+4. 如果失败，按 `CODE` / `TEST` / `ENVIRONMENT` / `PERMISSION` 分类：应修代码的提交新 SHA 再测；缺权限或工具的报告 `BLOCKED`，不靠猜测处理。
+5. 每次重测通过 `Attempt` 编号保留历史，避免新报告覆盖旧失败证据。通常连续 3 次未通过则请求人工复核。
+
+<details>
+<summary>PR 最小交接块示例</summary>
+
+```text
+[AI_DEV_BRIDGE_HANDOFF]
+Protocol: 1.1
+Issue: https://github.com/OWNER/REPO/issues/11
+PR: https://github.com/OWNER/REPO/pull/12
+Scope: 修复 JSON 数组解析
+Acceptance: 单元测试与回归测试通过
+Build: <由项目提供的真实构建命令>
+Tests: <由项目提供的真实测试命令>
+Deployment: DISABLED
+[/AI_DEV_BRIDGE_HANDOFF]
+```
+
+</details>
+
+**注意：**“一个 PR 链接”减少的是**人工复制指令**，不代表 WorkBuddy 和 ChatGPT 会自动互相通知。新增的 V1.1 重试约定也不是自主循环执行器。跨项目新手仍只需复制根目录的 `AGENTS.md`。
+
 ## 跨会话恢复
 
 每次重开 ChatGPT / WorkBuddy 会话时，只需提供仓库 URL 或关联 Issue / PR，并要求读取：
@@ -97,6 +129,8 @@ AGENTS.md
 ## 验证状态与局限
 
 本协议来源于两轮受控测试：**私有仓库 Git + SSH 交接/报告回传**、**Windows 环境下一项 C++11 小样例的真实编译与 8 组测试**，另在独立第二仓库完成单文件初始化和报告回传验证。
+
+V1.1 还通过 WorkBuddy 的真实 Git + SSH 三轮交接演练：Attempt 1 检测到故意失败，Attempt 2 识别 Windows CRLF 问题，Attempt 3 对受测 Git 提交的检查均成功；全部保留真实 SHA 和报告证据。此次为协议与测试样例验证，构建为 N/A，未执行部署。
 
 这不意味着该协议能在任何项目上自动运行，或所有语言/构建系统均已经测试。新的业务项目必须单独验证访问权限、实际工具链、构建测试、部署条件。某测试环境的 CMake 默认生成器未获得通过验证，因此不将 CMake 测试列为已验证能力。
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 — 2026-10-26
+
+- Standardized task states: READY, CODE_READY, TESTING, REVIEW_PENDING, FIX_REQUIRED, BLOCKED, VERIFIED, AWAITING_APPROVAL, DONE.
+- Added concise `[AI_DEV_BRIDGE_HANDOFF]` blocks in PR descriptions so a user can hand off by PR link instead of copying a large prompt.
+- Defined retry attempts, immutable execution report naming, failure categories, duplicate suppression and a human escalation after three failed attempts.
+- Required ChatGPT to discover report files/comments from the PR itself and verify tested SHA against report/metadata commits.
+- Preserved the V1.0 single-file `AGENTS.md` installation path; no scheduler, service, GitHub Action or autonomous agent invocation.
+- Acceptance evidence: WorkBuddy completed three real Git + SSH attempts: Attempt 1 `FAIL` (intentional fixture), Attempt 2 `FAIL` (CRLF working-tree mismatch), Attempt 3 `PASS` (committed-HEAD checks). ChatGPT verified each reported tested SHA against the corresponding report-only commit. Build was N/A; no deployment occurred.
+- Released as public main branch content after explicit user approval. This entry is **not** a claim that a GitHub Release or Git tag was created.
+
 ## 1.0.0 — Initial public release
 
 - Portable single-file `AGENTS.md` bootstrap protocol.
