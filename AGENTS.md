@@ -1,4 +1,4 @@
-# AI Dev Bridge Lite V1.1 — 单文件协作启动协议
+# AI Dev Bridge Lite V1.2 — 单文件协作启动协议
 
 > 把本文件作为 `AGENTS.md` 放在任意 GitHub 项目仓库根目录，然后分别让 ChatGPT 与 WorkBuddy 读取它。本文件可独立使用，不依赖这个模板的来源仓库或任何外部运行服务。
 >
@@ -232,3 +232,36 @@ Deployment: DISABLED
 
 V1.1 保留已验证的 V1.0 双向 GitHub 交接、Git + SSH 报告回传与 C++11 冒烟测试基础；新增规范化任务状态、简短交接和有证据的失败重试约定。**新增规则只有通过独立执行端验证后才可声称经过实测**。没有自动调度、后台互相唤醒或已验证的生产部署功能。
 
+
+## 9. V1.2：可选 GitHub 原生通知（人工仍负责启动 AI）
+
+V1.2 与 V1.1 **完全兼容**：复制本文件至任意项目根目录，即可继续使用手动 PR 链接交接。新增自动通知为**可选增强**，不是单文件启动的先决条件。
+
+### 9.1 什么会自动发生
+
+- 如项目负责人主动启用本仓库示例中的 `.github/workflows/ai-dev-bridge-notify.yml` 和 `.github/scripts/bridge_notify.py`，GitHub Actions 可在同仓库 PR 的 `opened` / `reopened` / `edited` / `ready_for_review` / `synchronize` 事件后检查其交接卡；Draft、Fork 和缺少交接卡的 PR 必须跳过。
+- **`CODE_READY`**：打开、重新打开、编辑合格 PR，或实际 PR HEAD 变更不是“仅新增执行报告”时，将带 HEAD SHA 的 `[AI_DEV_BRIDGE_NOTIFICATION]` 评论写入 PR。下一位处理者：WorkBuddy。
+- **`REVIEW_PENDING`**：在一次 `synchronize` 提交中，若 GitHub 比对证实变更**全部是新增的、命名正确的执行报告文件**，写入同样格式的通知评论。下一位处理者：ChatGPT。它仅意味着报告候选已到，**不是** Tests PASS、VERIFIED 或审查通过。
+- 通知由 `<!-- AI_DEV_BRIDGE_V1_2_NOTIFY kind=... sha=... -->` 标记按事件种类和完整 SHA 去重，已有通知不可重复刷屏。报告必须继续区分真实受测 SHA 和报告提交 SHA；通知不得替代 WorkBuddy 执行证据。
+- 此流程依赖已启用的 GitHub Actions、仓库允许 `issues: write` 的 GitHub Actions Token 和 PR 评论权限。若权限不足，工作流应失败并记录实际 403/BLOCKED；不得悄悄声称已发出通知。
+
+### 9.2 对用户与 AI 的意义
+
+- 用户在 GitHub 订阅或关注该 PR 时，可以收到正常的 GitHub 评论通知。GitHub 是否实际推送到移动端取决于用户的 GitHub 通知设置。
+- WorkBuddy 和 ChatGPT 仍**不会因 GitHub 评论自动启动**；用户仍需要主动打开这两个 AI 或由独立的、明确授权的集成进行调用。在没有直接接入的监听器时，绝不宣传为全自动多 Agent。
+- WorkBuddy 应从 `CODE_READY` 通知中的 PR URL 获取实际 PR 最新 HEAD 并按 V1.1 运行，而不是信任评论作为已执行证明。ChatGPT 应从 `REVIEW_PENDING` 通知自行读取报告和 GitHub compare、实际审核后才能置 VERIFIED。
+- 同一仓库的工作流属于可选安装文件，不允许 PR 的文字内容当作 shell 命令执行，不允许对外部 Fork 使用写 Token，不允许自动合并或部署。
+
+### 9.3 使用与迁移
+
+1. V1.1 用户：无须安装任何东西，继续依靠单文件 `AGENTS.md` 和 PR 链接人工交接。
+2. 希望 GitHub 自动写交接通知的项目：由负责人审核后**额外复制**本仓库的 `.github/workflows/ai-dev-bridge-notify.yml` 与 `.github/scripts/bridge_notify.py`，按自身仓库 Actions 权限设置启用，确认 GitHub Actions 允许评论。
+3. 在项目的 PR 描述中继续维护 V1.1 的 `[AI_DEV_BRIDGE_HANDOFF]` 块。通知成功只意味着 GitHub 评论已创建；AI 实际执行仍独立验收。
+4. 单仓库安全验证见 `tests/test_bridge_notify.py`（离线用例）和 `tests/V1.2_ACCEPTANCE.md`（真实 GitHub / WorkBuddy 验收）。任何未运行测试必须写 N/A / NOT RUN，不得虚报。
+
+### 9.4 范围界限
+
+- 不包含后台任务队列、WorkBuddy/ChatGPT API 直连、定时自动唤醒或无人审批的循环重试。
+- GitHub 工作流仅对当前有权限的仓库 PR 发布评论，不跨仓库发送私有源代码或日志。
+- GitHub Actions 执行路径与 V1.1 单文件手动路径互相独立； Actions 失败时仍可以按 V1.1 手动交接。
+- 在 GitHub 实际跑通通知和 WorkBuddy 的独立真实检查之前，V1.2 只能标为候选，不能称作端到端实测成功。

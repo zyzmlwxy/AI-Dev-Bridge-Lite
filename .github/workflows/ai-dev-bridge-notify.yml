@@ -1,0 +1,34 @@
+name: AI Dev Bridge Lite V1.2 PR notifications
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, ready_for_review, synchronize]
+
+# Do not use the privileged pull_request_target event. For fork PRs,
+# the job is skipped. No external credentials or hosted services are needed.
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: ai-bridge-notify-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.base.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout same-repository PR
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Classify handoff and post idempotent PR notification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/bridge_notify.py
