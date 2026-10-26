@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased] — V1.1 protocol candidate (not yet accepted)
+
+- Standardized task states: READY, CODE_READY, TESTING, REVIEW_PENDING, FIX_REQUIRED, BLOCKED, VERIFIED, AWAITING_APPROVAL, DONE.
+- Added concise `[AI_DEV_BRIDGE_HANDOFF]` blocks in PR descriptions so a user can hand off by PR link instead of copying a large prompt.
+- Defined retry attempts, immutable execution report naming, failure categories, duplicate suppression and a human escalation after three failed attempts.
+- Required ChatGPT to discover report files/comments from the PR itself and verify tested SHA against report/metadata commits.
+- Preserved the V1.0 single-file `AGENTS.md` installation path; no scheduler, service, GitHub Action or autonomous agent invocation.
+- Acceptance status: **pending execution-side validation**, including an intentional failed-check → fix → retest exercise; this section is not a released version tag.
+
 ## 1.0.0 — Initial public release
 
 - Portable single-file `AGENTS.md` bootstrap protocol.
