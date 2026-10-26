@@ -41,7 +41,7 @@
 若项目尚无 `.ai-collab/` 协作状态，创建**一个独立初始化 PR**，在分支内按需加入：
 
 - `.ai-collab/PROJECT_CONFIG.md`：供人审查的项目配置说明，包含仓库标识、稳定分支、构建／测试命令、环境、部署策略（默认 `DISABLED`）、保密约束和角色权限。未知字段写 `UNKNOWN`，不猜测。
-- `.ai-collab/PROJECT_CONFIG.json`（自动执行场景）：机器可读的权威配置；严格校验 schema 版本和字段类型。仅当项目启用自动执行时需要；不能用 Markdown 文本替代机器校验。
+- `.ai-collab/PROJECT_CONFIG.json`（自动执行场景）：机器可读的权威配置；严格校验 schema 版本和字段类型。仅当项目启用自动执行时需要；不能用 Markdown 文本替代机器校验。 本仓库通过 `tests/test_project_config.py` 校验配置键、类型、关闭执行的安全默认值及 Markdown 说明的一致性；该测试由证据预检工作流执行。
 - `.ai-collab/PROJECT_STATUS.md`：当前目标、任务 Issue / PR、已知决定、阻塞项、下一步、最近一次**受测 SHA 和报告链接**。用简短事实代替复制聊天记录。
 - `.gitignore`：仅在必要时补充本机产物排除规则（例如 `.workbuddy/`、凭据、日志、构建产物）；已有规则应合并，绝不盲目替换。
 - 保留现有 `AGENTS.md`；如果它已具有独立团队规范，未经确认不得覆盖或删除。
