@@ -20,7 +20,7 @@ ACTUAL_STATUS = re.compile(r"^(PASS|FAIL|BLOCKED|N/A|NOT RUN|UNKNOWN)(?:\s+\(.*\
 PR_EVENTS = frozenset(("opened", "reopened", "edited", "ready_for_review", "synchronize"))
 REQUIRED = (
     "Protocol", "Repository", "PR", "Attempt", "Tested Commit SHA",
-    "Tests", "Test command", "Test exit code", "Failure category", "Overall"
+    "Build", "Tests", "Test command", "Test exit code", "Failure category", "Overall"
 )
 FAILURES = frozenset(("NONE", "CODE", "TEST", "ENVIRONMENT", "PERMISSION", "UNKNOWN"))
 MAX_REPORT_BYTES = 32768
@@ -54,19 +54,20 @@ def status(value):
 def parse_report(body, repository, number, filename):
     if not isinstance(body, str) or len(body.encode("utf-8")) > MAX_REPORT_BYTES:
         raise EvidenceError("Report is missing or larger than 32 KiB")
-    if not body.startswith("[WORKBUDDY_EXECUTION_REPORT]\n"):
+    lines = body.splitlines()  # Handles both LF and Windows CRLF.
+    if not lines or lines[0] != "[WORKBUDDY_EXECUTION_REPORT]":
         raise EvidenceError("Missing report header on first line")
     name_info = get_report_name(number, filename)
     if name_info is None:
         raise EvidenceError("Report name does not match PR")
     fields = {}
-    for line in body.splitlines()[1:]:
+    for line in lines[1:]:
         if not line or line.startswith(" ") or line.startswith("\t"):
             continue
         if ":" not in line:
             continue
         key, value = line.split(":", 1)
-        if key in REQUIRED:
+        if key in REQUIRED or key in ("Build command", "Build exit code"):
             if key in fields:
                 raise EvidenceError("Duplicate report field: " + key)
             fields[key] = value.strip()
@@ -89,33 +90,74 @@ def parse_report(body, repository, number, filename):
         raise EvidenceError("Tested SHA must be full and match report filename")
     if not re.fullmatch(r"1\.[1-9][0-9]*", fields["Protocol"]):
         raise EvidenceError("Unsupported protocol version")
+    build = status(fields["Build"])
     tests = status(fields["Tests"])
     overall = status(fields["Overall"])
-    if tests is None or overall is None:
-        raise EvidenceError("Unknown Tests or Overall status")
+    if build is None or tests is None or overall is None:
+        raise EvidenceError("Unknown Build, Tests or Overall status")
     if fields["Failure category"] not in FAILURES:
         raise EvidenceError("Unknown failure category")
-    code = fields["Test exit code"]
-    if tests == "PASS":
-        if code != "0" or fields["Test command"] in ("NOT RUN", "N/A", "UNKNOWN"):
-            raise EvidenceError("Tests PASS requires actual command and exit code 0")
-    elif tests == "NOT RUN":
-        if code not in ("NOT RUN", "N/A"):
-            raise EvidenceError("NOT RUN tests cannot report an executed exit code")
-    elif tests == "FAIL":
-        try:
-            exit_code = int(code)
-        except ValueError as exc:
-            raise EvidenceError("Tests FAIL requires a numeric exit code") from exc
-        if exit_code == 0:
-            raise EvidenceError("Tests FAIL conflicts with exit code 0")
+
+    def check_result(label, state, command, code):
+        # Check only declared evidence. This is syntactic consistency, not
+        # verification that WorkBuddy truly executed the declared command.
+        if state == "PASS":
+            if (not command or command in ("N/A", "NOT RUN", "UNKNOWN")
+                    or code != "0"):
+                raise EvidenceError(
+                    "{} PASS requires actual command and exit code 0".format(label)
+                )
+        elif state == "FAIL":
+            if not command or command in ("N/A", "NOT RUN", "UNKNOWN"):
+                raise EvidenceError("{} FAIL requires actual command".format(label))
+            try:
+                numeric = int(code)
+            except ValueError as exc:
+                raise EvidenceError(
+                    "{} FAIL requires a numeric exit code".format(label)
+                ) from exc
+            if numeric == 0:
+                raise EvidenceError(
+                    "{} FAIL conflicts with exit code 0".format(label)
+                )
+        elif state in ("N/A", "NOT RUN"):
+            if code not in ("", "NOT RUN", "N/A"):
+                raise EvidenceError(
+                    "{} {} contradicts execution exit code".format(label, state)
+                )
+        elif state == "BLOCKED":
+            # Execution might not have started, or might have exited with a
+            # concrete failure; never accept a contradictory zero exit.
+            if code not in ("", "NOT RUN", "N/A"):
+                try:
+                    numeric = int(code)
+                except ValueError as exc:
+                    raise EvidenceError(
+                        "{} BLOCKED has invalid exit code".format(label)
+                    ) from exc
+                if numeric == 0:
+                    raise EvidenceError(
+                        "{} BLOCKED conflicts with exit code 0".format(label)
+                    )
+
+    check_result("Build", build,
+                 fields.get("Build command", ""),
+                 fields.get("Build exit code", ""))
+    check_result("Tests", tests,
+                 fields["Test command"], fields["Test exit code"])
+
     if overall == "PASS":
-        if tests != "PASS" or fields["Failure category"] != "NONE":
-            raise EvidenceError("Overall PASS is inconsistent with Tests/Failure category")
+        if (build not in ("PASS", "N/A")
+                or tests not in ("PASS", "N/A")
+                or (build != "PASS" and tests != "PASS")
+                or fields["Failure category"] != "NONE"):
+            raise EvidenceError(
+                "Overall PASS is inconsistent with applicable Build/Tests/Failure category"
+            )
     if overall == "BLOCKED" and fields["Failure category"] == "NONE":
         raise EvidenceError("Overall BLOCKED must state failure category")
     return {"tested_sha": tested_sha, "attempt": attempt,
-            "tests": tests, "overall": overall,
+            "build": build, "tests": tests, "overall": overall,
             "category": fields["Failure category"]}
 
 
