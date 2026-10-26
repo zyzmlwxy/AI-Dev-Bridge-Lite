@@ -4,35 +4,41 @@ Last updated: 2026-10-27
 
 ## Current phase
 
-**V1.4 single-executor MVP preparation — design and environment preflight only.**
+**V1.4 single-executor MVP preparation — fail-closed design merged; context-recovery procedure under review; runtime preflight only.**
 
 ## Verified progress
 
-- GitHub task metadata is readable through the existing connector.
-- The PR #16 experiment verified sequential claim creation, duplicate skip, and a sequential non-fast-forward rejection using Git + SSH.
-- PR #17 contains the V1.4 claim protocol, acceptance matrix, and WorkBuddy single-executor runbook; it remains subject to review and merge.
-- GitHub Actions passed the fail-closed configuration contract tests and existing evidence/notifier regression checks on commit `2200ab9720a76ce5360a4dfa7987985e97524cfe`. This validates the configuration shape and safe defaults only; it does not validate the WorkBuddy runner or execute project build/tests.
-- The latest reported local environment probe found a valid, clean Git checkout and a usable Python interpreter through an explicit executable path.
-- That checkout was on a PR #16 conflict-candidate branch, not an approved execution branch/worktree. It is **not approved for running project tasks**.
-- Native PowerShell command resolution did not find Git and the literal `python` command resolved to a Microsoft Store stub. Do not change system/user `PATH` automatically; configure and verify explicit executable paths if needed.
-- `.ai-collab/PROJECT_CONFIG.json` is the machine-readable configuration source of truth; `.ai-collab/PROJECT_CONFIG.md` explains it for humans. Both are fail-closed additions in the current design PR and are **not trusted base-branch policy until the PR is reviewed and merged**. JSON currently sets `execution_enabled=false`, `allowed_commands=[]`, and `workspace_profile=UNCONFIGURED`.
+- PR #16 verified sequential claim creation, duplicate skip, and a sequential non-fast-forward rejection using Git + SSH.
+- PR #17 was squash-merged into `main` as merge commit `34b8089bfae6cfa5dec24b764c2969ac7a807fcd`. It adds the V1.4 claim protocol, acceptance matrix, single-executor runbook, and strict machine-readable configuration.
+- GitHub Actions run [#40359969450](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/actions/runs/40359969450) passed on tested commit `2200ab9720a76ce5360a4dfa7987985e97524cfe`: project-config contract tests, existing evidence-gate regression checks, and notifier offline tests. The only PR change after that tested SHA was a status-documentation update. These checks do not validate the WorkBuddy runner or execute project build/tests.
+- `.ai-collab/PROJECT_CONFIG.json` is the trusted-base machine-readable configuration source of truth; `.ai-collab/PROJECT_CONFIG.md` is its human explanation.
+- The config deliberately remains fail-closed: `execution_enabled=false`, `allowed_commands=[]`, `workspace_profile=UNCONFIGURED`, `deployment=DISABLED`.
+- The last reported environment probe found Git/Python usable via explicit executable paths, while PowerShell PATH resolution did not find Git and `python` resolved to a Microsoft Store stub. Do not change global/user `PATH` automatically.
+- The inspected checkout was on the PR #16 conflict-candidate branch, not an approved execution workspace. Do not use it to run project tasks.
+- **NAS SSH: `USER_REPORTED`.** The user reports that their current machine can access the NAS via SSH. This has not been independently re-probed in the current recovery task. After context loss, WorkBuddy must retry the existing local SSH alias/authentication path from the intended machine and record fresh, sanitized evidence; do not ask the user to reconfigure it merely because the chat context is missing.
 
 ## Current execution gate
 
 - `execution_enabled`: **false**
 - `allowed_commands`: **empty**
 - `workspace_profile`: **UNCONFIGURED**
+- `workspace_root` / `working_directory`: **null**
 - `deployment`: **DISABLED**
 - Multi-executor concurrency testing: **deferred**, not an MVP blocker.
 
-No WorkBuddy-local project build/test command has been authorized or run as part of this phase. GitHub Actions has run only the configuration-contract and existing evidence/notifier regression checks. A clean Git worktree alone does not prove that its branch is appropriate for execution.
+No WorkBuddy-local project command, build/test, NAS mutation, deployment, PATH mutation, or scheduled-task change has been authorized or performed in this phase. GitHub Actions results are configuration/evidence regression checks only.
 
 ## Next steps
 
-1. Review and merge the V1.4 design/configuration baseline before treating it as trusted base-branch policy.
-2. Designate a separate, clean execution workspace checked out at an explicitly approved source SHA; do not reuse the PR #16 conflict-candidate branch as the execution workspace.
-3. Configure exact tool paths, working directory, timeout, and command allowlist without changing global PATH.
-4. Verify single-flight behavior and the report-only evidence path.
-5. Obtain separate user authorization for one harmless pilot command and preserve the real command/output/exit-code evidence.
+1. Review and merge the context-loss recovery policy PR when ready.
+2. WorkBuddy rereads the current GitHub state, then re-probes the existing NAS SSH path with a bounded timeout and a read-only command from the intended machine/account. Record command shape, timestamp, exit code and a redacted result; do not change SSH/NAS configuration if a probe fails.
+3. Designate a separate, clean execution workspace at an explicitly approved source SHA; do not reuse the PR #16 conflict-candidate checkout.
+4. Configure and verify exact executable paths, working directory, timeout, and a narrowly scoped command allowlist without changing global `PATH`.
+5. Verify single-flight behavior and report-only evidence handling.
+6. Obtain separate user authorization for one harmless pilot command and preserve the actual command/output/exit-code evidence.
 
-No automatic source editing, merge, release, or deployment is authorized.
+## Context recovery contract
+
+On every fresh ChatGPT or WorkBuddy session, reread `AGENTS.md`, trusted-base config JSON/Markdown, this status file, related Issues/PRs, latest commits/reviews/checks, and the latest execution report. GitHub evidence wins over chat memory. Record durable facts with one of `VERIFIED`, `USER_REPORTED`, `UNKNOWN`, or `BLOCKED`; preserve sanitized known-good methods and failures so neither side assumes the other remembers prior work. Never commit credentials, private keys, private IPs, usernames, machine-local secret paths, or sensitive logs.
+
+No automatic source editing, merge, release, or deployment is authorized by this status file.
