@@ -1,0 +1,26 @@
+name: V1.2 notifier offline tests
+
+on:
+  pull_request:
+    paths:
+      - '.github/scripts/bridge_notify.py'
+      - '.github/workflows/ai-dev-bridge-notify.yml'
+      - '.github/workflows/test-v1.2.yml'
+      - 'tests/test_bridge_notify.py'
+      - 'AGENTS.md'
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Syntax check
+        run: python3 -m py_compile .github/scripts/bridge_notify.py
+      - name: Offline classifier security and idempotence suite
+        run: python3 -m unittest discover -s tests -p 'test_bridge_notify.py' -v
