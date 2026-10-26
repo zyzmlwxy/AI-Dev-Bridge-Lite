@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased] — V1.2 GitHub-native notification candidate
+
+- Optional `pull_request`-based GitHub Actions notifications for same-repository, non-draft PRs with a handoff block.
+- Evidence-based `CODE_READY` (WorkBuddy next) and `REVIEW_PENDING` (ChatGPT next) comments, deduplicated by notification kind and exact PR head SHA.
+- GitHub compare classifies report-only commits conservatively: only added, immutable, correctly named reports qualify. No automatic PASS or VERIFIED.
+- Offline standard-library Python regression tests including draft/fork restrictions, duplicate suppression and mixed changes.
+- Retains standalone `AGENTS.md` and V1.1 manual mode; no background AI wakeup, external hosting, or autonomous deployment.
+- **Pending** GitHub Actions permission/notification smoke test and independent WorkBuddy execution evidence.
 ## 1.1.0 — 2026-10-26
 
 - Standardized task states: READY, CODE_READY, TESTING, REVIEW_PENDING, FIX_REQUIRED, BLOCKED, VERIFIED, AWAITING_APPROVAL, DONE.
