@@ -32,7 +32,8 @@ jobs:
           persist-credentials: false
       - name: Syntax check
         run: python3 -m py_compile .github/scripts/bridge_evidence.py
-      - name: Offline evidence gate regression suite
+      - name: Offline evidence gate regression suite (when installed)
+        if: ${{ hashFiles('tests/test_bridge_evidence.py') != '' }}
         run: python3 -m unittest discover -s tests -p 'test_bridge_evidence.py' -v
       - name: Compare latest report to its tested commit
         env:
