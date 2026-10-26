@@ -34,6 +34,8 @@ V1.1 adds consistent task states, a short PR handoff card, numbered test attempt
 - Failures are classified as `CODE`, `TEST`, `ENVIRONMENT`, `PERMISSION` or `UNKNOWN`. Actual code/test fixes need a new head SHA and a retest; missing tools/permissions become `BLOCKED`. Report filenames contain an attempt number to preserve history.
 - If a task still fails after three execution attempts, request human review rather than performing unbounded retries.
 
+The V1.1 handoff was exercised in three real WorkBuddy Git + SSH attempts: an intentional failed fixture check, a real Windows CRLF mismatch, then a successful committed-HEAD check, with separate reports and verified SHAs. This is a protocol acceptance drill (build N/A), not a production build or autonomous retry.
+
 The new protocol is still contained in the same root-level `AGENTS.md`. An Issue/PR and user-started AI conversations remain the coordination mechanism.
 
 ## Workflow
