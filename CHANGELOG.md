@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased] — V1.3 evidence-gated handoff candidate
+
+- Opt-in read-only GitHub Actions preflight for immutable WorkBuddy reports, with `WAITING_FOR_REPORT`, `EVIDENCE_READY` and fail-safe `EVIDENCE_INVALID` status.
+- Parse essential execution metadata and actual recorded exit codes, validate full tested SHA against report filename and linked PR.
+- Confirm with GitHub commit comparison that only report files were added after the tested SHA; prevent silently inheriting evidence after source/test/config changes.
+- Python standard-library implementation and offline malformed-report / non-ancestor / mixed-diff regression tests.
+- Preserve V1.1 single-file manual onboarding and V1.2 native PR comment notifications, without external services or autonomous agent starts.
+- **Pending:** GitHub Actions live evidence workflow, WorkBuddy independent run/report and ChatGPT SHA verification. Not a released or approved version.
+
 ## 1.2.0 — 2026-10-26
 
 - Optional `pull_request`-based GitHub Actions notifications for same-repository, non-draft PRs with a handoff block.
