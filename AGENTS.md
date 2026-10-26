@@ -1,4 +1,4 @@
-# AI Dev Bridge Lite V1.2 — 单文件协作启动协议
+# AI Dev Bridge Lite V1.3 — 单文件协作启动协议
 
 > 把本文件作为 `AGENTS.md` 放在任意 GitHub 项目仓库根目录，然后分别让 ChatGPT 与 WorkBuddy 读取它。本文件可独立使用，不依赖这个模板的来源仓库或任何外部运行服务。
 >
@@ -265,3 +265,35 @@ V1.2 与 V1.1 **完全兼容**：复制本文件至任意项目根目录，即�
 - GitHub 工作流仅对当前有权限的仓库 PR 发布评论，不跨仓库发送私有源代码或日志。
 - GitHub Actions 执行路径与 V1.1 单文件手动路径互相独立； Actions 失败时仍可以按 V1.1 手动交接。
 - 在 GitHub 实际跑通通知和 WorkBuddy 的独立真实检查之前，V1.2 只能标为候选，不能称作端到端实测成功。
+
+## 10. V1.3：可选的 GitHub 自动执行证据预审
+
+V1.3 在 V1.2 自动评论基础上，提供**可选、只读**的 GitHub Actions 报告证据检查。核心的 `AGENTS.md` 单文件接入仍可脱离 Actions 独立工作，不增加守护进程、Webhook 接收服务、长期令牌或 AI 自动唤醒。
+
+### 10.1 两种状态与其含义
+
+- `WAITING_FOR_REPORT`：PR 里没有新增符合命名规则的 WorkBuddy 报告。表示等待 WorkBuddy 执行，**不是**任何测试结果的 PASS。
+- `EVIDENCE_READY`：自动检测找到带独立 Attempt 编号的报告，检查报告字段、完整受测 SHA、命令/退出码及 Git 提交谱系；从 `Tested Commit SHA` 到报告提交 HEAD 只能新增报告文件，任何业务代码、测试或配置变化都会阻止沿用旧的验证。
+- `EVIDENCE_INVALID`：元数据不完整、SHA 不匹配、受测 SHA 非当前 HEAD 的可验证祖先、报告提交后存在代码变更、或自述测试结论与退出码不一致时，Actions 检查退出非零，要求人重新核对或在新 HEAD 上重测。
+- `EVIDENCE_READY` **仅表示报告的格式与 Git 谱系可信**，不表示执行输出真实、测试通过、代码安全、已批准、已由 ChatGPT 审核。真正 `VERIFIED` 必须依照 V1.1 流程由 ChatGPT 检查证据。
+
+### 10.2 新增组件及权限
+
+- 可选复制 `.github/workflows/ai-dev-bridge-evidence.yml` 与 `.github/scripts/bridge_evidence.py`；由 GitHub Actions `pull_request` 在同仓库非 Draft PR 上执行。
+- 工作流只需要 `contents: read` 和 `pull-requests: read`，与 V1.2 通知脚本的写权限独立；**不得改为** `pull_request_target`，也不得执行报告中声称的 shell 命令。
+- 报告遵守 V1.1 的 `.ai-collab/reports/PR-<PR号>-<受测SHA前7位>-a<Attempt>.md` 命名和 `[WORKBUDDY_EXECUTION_REPORT]` 字段约定；旧版没有 Attempt 后缀的报告仍可识别为 Attempt 1，但必须包含足够的元数据。
+- 自动检查通过后会在 GitHub Actions 的 Job Summary 输出待处理对象、受测 SHA、报告提交 SHA、下一位处理者；用户和 ChatGPT 可从 PR Checks 查看，而非复制一整份报告。
+- 同一 PR 里存在多个相同 Attempt 的新增报告、文件过大（32 KiB 以上）、非报告文件变更或无法取得完整 compare 证据时，宁可 `EVIDENCE_INVALID`，也不凭猜测标为可审查。
+
+### 10.3 工作交接
+
+1. ChatGPT 开发并在 PR 描述中维护 `[AI_DEV_BRIDGE_HANDOFF]`，供 V1.2 通知系统提醒 WorkBuddy。
+2. WorkBuddy 真实执行、记下 40 位受测 SHA 和实际退出码，将脱敏报告作为单独提交写回 PR 分支；不能修改业务源码后沿用原来的报告。
+3. GitHub V1.2 自动写 `REVIEW_PENDING` 评论，V1.3 独立的只读证据工作流预审报告格式与 Git 变更范围，输出 `EVIDENCE_READY` 或失败原因。
+4. ChatGPT 仍需核对 WorkBuddy 实际输出和报告可靠性，并审查代码；用户仍要决定是否合并、部署或发布。
+
+### 10.4 兼容性和限制
+
+- 没有安装可选工作流时，V1.1 / V1.2 的 PR 链接人工交接和报告发现方式完全保持可用。
+- GitHub Actions 检查结果是元数据审计，不是业务构建；不能从任何日志、注释或 PR 事件推断 ChatGPT 或 WorkBuddy 已在后台运行。
+- 新能力必须通过 GitHub CI 及 WorkBuddy 独立测试才能称为实测完成。测试详情见 `tests/test_bridge_evidence.py` 和 `tests/V1.3_ACCEPTANCE.md`。

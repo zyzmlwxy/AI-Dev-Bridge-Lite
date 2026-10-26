@@ -1,0 +1,41 @@
+name: AI Dev Bridge Lite V1.3 evidence preflight
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, ready_for_review, synchronize]
+    paths:
+      - '.ai-collab/reports/**'
+      - '.github/scripts/bridge_evidence.py'
+      - '.github/workflows/ai-dev-bridge-evidence.yml'
+      - 'tests/test_bridge_evidence.py'
+      - 'AGENTS.md'
+      - 'tests/V1.3_ACCEPTANCE.md'
+
+# This is an evidence STRUCTURE check, not a test runner, and never writes
+# back to GitHub. Other V1.2 notification workflows remain independent.
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  evidence:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.base.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout merge code to inspect same-repo evidence script
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Syntax check
+        run: python3 -m py_compile .github/scripts/bridge_evidence.py
+      - name: Offline evidence gate regression suite (when installed)
+        if: ${{ hashFiles('tests/test_bridge_evidence.py') != '' }}
+        run: python3 -m unittest discover -s tests -p 'test_bridge_evidence.py' -v
+      - name: Compare latest report to its tested commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/bridge_evidence.py
