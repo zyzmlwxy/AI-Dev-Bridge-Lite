@@ -38,3 +38,7 @@ The collaboration workflow has been exercised in private GitHub repositories, in
 - Git + SSH requires an authorized local runtime and, for some environments, one-time public-key enrollment.
 - No background automation or cross-agent wake-up is provided.
 - Additional build generators, including one Windows CMake default-generator path, were not fully validated.
+
+### Current integration test limitation (V1.2 candidate)
+
+GitHub CI ran the Python syntax check and **18/18 tests passed**. However, the real notification job received **HTTP 403** when attempting to create a PR comment. Automatic GitHub comment delivery is **BLOCKED** pending approved repository/workflow permissions; this is not a released or verified feature. The V1.1 manual PR link handoff remains supported.
