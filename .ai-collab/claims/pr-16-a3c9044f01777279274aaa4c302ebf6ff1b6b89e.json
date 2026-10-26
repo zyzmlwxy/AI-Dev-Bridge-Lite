@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "state": "CLAIMED",
+  "run_key": "zyzmlwxy/AI-Dev-Bridge-Lite#16@a3c9044f01777279274aaa4c302ebf6ff1b6b89e",
+  "repository": "zyzmlwxy/AI-Dev-Bridge-Lite",
+  "pr_number": 16,
+  "head_sha": "a3c9044f01777279274aaa4c302ebf6ff1b6b89e",
+  "claim_ref": "refs/heads/ai-bridge/claims/pr-16-a3c9044f01777279274aaa4c302ebf6ff1b6b89e",
+  "claimed_at_utc": "2026-10-26T12:43:23Z",
+  "claim_attempt_id": "wb-v14-claim-20261026-01"
+}
