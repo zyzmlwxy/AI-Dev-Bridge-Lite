@@ -217,6 +217,20 @@ def process(event, repository, api, dry_run=False):
     return "POSTED: {} for PR #{} ({})".format(kind, number, sha)
 
 
+def write_actions_summary(message):
+    """Record a human-readable status even when PR comment permissions fail."""
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not summary_path:
+        return
+    with open(summary_path, "a", encoding="utf-8") as stream:
+        stream.write("## AI Dev Bridge Lite V1.2 notification\n\n")
+        stream.write(message.replace("\n", "  \n") + "\n\n")
+        stream.write(
+            "A GitHub Actions notification is NOT proof that WorkBuddy "
+            "or ChatGPT was automatically started or that tests passed.\n"
+        )
+
+
 def main():
     try:
         path = os.environ["GITHUB_EVENT_PATH"]
@@ -229,9 +243,16 @@ def main():
             os.environ.get("GH_TOKEN", "dry-run-token" if dry_run else ""),
             os.environ.get("GITHUB_API_URL", "https://api.github.com"),
         )
-        print(process(event, repository, api, dry_run=dry_run))
+        result = process(event, repository, api, dry_run=dry_run)
+        print(result)
+        write_actions_summary(result)
     except (NotificationError, KeyError, ValueError, OSError) as exc:
-        print("BLOCKED: {}".format(exc), file=sys.stderr)
+        status = "BLOCKED: {}".format(exc)
+        print(status, file=sys.stderr)
+        try:
+            write_actions_summary(status)
+        except OSError:
+            pass
         return 1
     return 0
 
