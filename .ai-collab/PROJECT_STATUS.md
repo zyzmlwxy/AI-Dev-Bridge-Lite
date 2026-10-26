@@ -11,6 +11,7 @@ Last updated: 2026-10-27
 - GitHub task metadata is readable through the existing connector.
 - The PR #16 experiment verified sequential claim creation, duplicate skip, and a sequential non-fast-forward rejection using Git + SSH.
 - PR #17 contains the V1.4 claim protocol, acceptance matrix, and WorkBuddy single-executor runbook; it remains subject to review and merge.
+- GitHub Actions passed the fail-closed configuration contract tests and existing evidence/notifier regression checks on commit `2200ab9720a76ce5360a4dfa7987985e97524cfe`. This validates the configuration shape and safe defaults only; it does not validate the WorkBuddy runner or execute project build/tests.
 - The latest reported local environment probe found a valid, clean Git checkout and a usable Python interpreter through an explicit executable path.
 - That checkout was on a PR #16 conflict-candidate branch, not an approved execution branch/worktree. It is **not approved for running project tasks**.
 - Native PowerShell command resolution did not find Git and the literal `python` command resolved to a Microsoft Store stub. Do not change system/user `PATH` automatically; configure and verify explicit executable paths if needed.
@@ -24,7 +25,7 @@ Last updated: 2026-10-27
 - `deployment`: **DISABLED**
 - Multi-executor concurrency testing: **deferred**, not an MVP blocker.
 
-No project build/test command has been authorized or run as part of this phase. A clean Git worktree alone does not prove that its branch is appropriate for execution.
+No WorkBuddy-local project build/test command has been authorized or run as part of this phase. GitHub Actions has run only the configuration-contract and existing evidence/notifier regression checks. A clean Git worktree alone does not prove that its branch is appropriate for execution.
 
 ## Next steps
 
