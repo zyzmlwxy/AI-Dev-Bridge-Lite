@@ -49,7 +49,19 @@ The V1.1 single-file flow remains fully supported. V1.2 offers an **opt-in** Git
 To opt in, copy `.github/workflows/ai-dev-bridge-notify.yml` and `.github/scripts/bridge_notify.py` into the target repository, review their permissions and enable GitHub Actions PR-comment rights (workflow-local `contents: read`, `issues: write`, and `pull-requests: write` token permissions). The notifier uses Python's standard library and repository-local GitHub APIs; no backend server or webhook receiver is needed. Draft and fork PRs are deliberately skipped. Repositories that cannot grant comment permissions can continue using the manual V1.1 handoff.
 
 Run local offline checks in this repo with `python3 -m unittest discover -s tests -p 'test_bridge_notify.py' -v`. **Actual V1.2 evidence:** WorkBuddy on Windows 11 / Python 3.13.14 and GitHub CI independently passed 18/18 tests and syntax checks; GitHub Actions posted real `CODE_READY` and report-only `REVIEW_PENDING` bot comments and demonstrated same-SHA notification deduplication. The original HTTP 403 was resolved with the repository owner's approval to change **only the workflow's** `pull-requests` permission to `write`, not the repository-wide default. See [PR #7 verification](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/pull/7#issuecomment-6407513665). No autonomous agent start, project build or production deployment was verified.
-\n## Workflow
+\n## V1.3 candidate: automatic report-evidence preflight
+
+V1.3 adds an **optional, read-only** GitHub Actions check for execution reports. It consumes no custom secrets and never executes report-provided commands. The existing single-file `AGENTS.md` flow and V1.2 PR comments remain usable without it.
+
+- `WAITING_FOR_REPORT`: no newly added WorkBuddy report was found. Not test PASS.
+- `EVIDENCE_READY`: report metadata and Git compare lineage are consistent, including a complete tested SHA and a report-only change from tested code to current PR HEAD. This is **not a verification that tests really ran**.
+- `EVIDENCE_INVALID`: missing or inconsistent metadata, invalid SHA, stale tested revision, or substantive changes after the tested SHA; investigate and retest where needed.
+
+Opt in by reviewing and adding `.github/workflows/ai-dev-bridge-evidence.yml` and `.github/scripts/bridge_evidence.py`. The GitHub token requires only `contents: read` and `pull-requests: read`. Offline tests are in `tests/test_bridge_evidence.py`; a real WorkBuddy report and GitHub Actions inspection are still required before the V1.3 feature can be considered fully validated.
+
+GitHub checks and comments do not start WorkBuddy or ChatGPT, approve PRs, or deploy software. V1.3 reduces evidence-checking effort, not the need for the user to start assistants.
+
+## Workflow
 
 ```text
 Request → ChatGPT task/PR → WorkBuddy tests exact SHA
