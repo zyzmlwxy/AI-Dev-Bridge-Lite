@@ -140,9 +140,33 @@ class GitHubApi:
             with urllib.request.urlopen(req, timeout=20) as resp:
                 return json.load(resp)
         except urllib.error.HTTPError as exc:
+            # Diagnostic details are restricted to GitHub's structured error
+            # message and accepted permissions; never print headers, tokens,
+            # the request payload, or any untrusted raw response body.
+            try:
+                error_data = json.loads(exc.read(2048).decode("utf-8"))
+                message = error_data.get("message", "")
+            except (ValueError, UnicodeError, OSError):
+                message = ""
+            if not isinstance(message, str):
+                message = ""
+            safe_message = "".join(
+                c for c in message[:200]
+                if c.isalnum() or c in " .,:;_-/()"
+            )
+            accepted = exc.headers.get("X-Accepted-GitHub-Permissions", "")
+            if not isinstance(accepted, str):
+                accepted = ""
+            safe_permissions = "".join(
+                c for c in accepted[:160]
+                if c.isalnum() or c in " =,;_-"
+            )
             raise NotificationError(
-                "GitHub API {} {} returned HTTP {}".format(
-                    method, path, exc.code
+                "GitHub API {} {} returned HTTP {}; message={}; "
+                "accepted_permissions={}".format(
+                    method, path, exc.code,
+                    safe_message or "UNAVAILABLE",
+                    safe_permissions or "NOT_REPORTED",
                 )
             ) from exc
         except urllib.error.URLError as exc:
