@@ -127,7 +127,24 @@ V1.2 在 V1.1 的一链接交接之上，尝试进一步降低人工催促：由
 提示：仓库若限制 `GITHUB_TOKEN` 写权限，工作流可能报 403 并无法留言；不能绕过权限。对于来自 Fork 的 PR，通知任务直接跳过。可用 `python3 -m unittest discover -s tests -p 'test_bridge_notify.py' -v` 执行本仓库的离线验证用例。
 
 **V1.2 实测结果：** WorkBuddy 在 Windows 11 / Python 3.13.14 环境执行语法检查与 18/18 单测，GitHub CI 同样 18/18 通过；GitHub Actions 实际发布 `CODE_READY` 和报告回传后的 `REVIEW_PENDING` 评论，按完整 SHA 去重也已验证。原先的 403 由用户批准的**工作流局部** `pull-requests: write` 调整解决，没有修改仓库全局权限。见 [PR #7 验收记录](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/pull/7#issuecomment-6407513665)。若目标仓库 Actions 禁用或缺权限，照旧按 V1.1 手动交接。
-\n## 跨会话恢复
+
+## V1.3 候选：自动报告证据预审
+
+V1.2 已能在 PR 变更时自动评论提醒处理者。V1.3 进一步增加一个**可选的只读 GitHub Actions 证据门禁**，让用户或 ChatGPT 直接从 PR Checks 看到报告是否满足基本可核验条件。
+
+| GitHub 检查结果 | 含义 | 下一步 |
+| --- | --- | --- |
+| `WAITING_FOR_REPORT` | 尚无新增的 WorkBuddy 报告 | WorkBuddy 实际执行并回传 |
+| `EVIDENCE_READY` | 报告字段、受测 SHA 与 Git 提交谱系通过自动预审 | ChatGPT 独立验收，**不能自动认为 Tests PASS** |
+| `EVIDENCE_INVALID` | 报告缺字段、SHA 错误、退出码矛盾、测试后又改了源码等 | 查明原因，必要时重测新 SHA |
+
+只读检查脚本位于 `.github/scripts/bridge_evidence.py`，工作流位于 `.github/workflows/ai-dev-bridge-evidence.yml`，额外安装这两份文件后才有 GitHub 自动预审。它只请求 `contents: read` 和 `pull-requests: read`，与 V1.2 评论写入权限独立，**不执行报告中提供的任何构建命令**。
+
+例如 WorkBuddy 已经在 `abc...` 提交上跑完真实测试，随后提交 `PR-12-abc....-a1.md`。GitHub 会检查该报告的完整受测 SHA、Attempt、退出码，以及受测 SHA 到上传报告的新 HEAD 之间是否真的只有新增报告文件。若有人在此期间又改了 `src/` 文件，预审会失败并要求重新确认，不会沿用旧报告。
+
+**此阶段仍需要你主动打开 WorkBuddy / ChatGPT。** 没有 Agent API 连接就无法自动唤醒；V1.3 减少的是人工检查和交接证据的步骤，不是宣称无人值守开发。初步离线/Actions 结果必须通过真实联调才能标为已验证。
+
+## 跨会话恢复
 
 每次重开 ChatGPT / WorkBuddy 会话时，只需提供仓库 URL 或关联 Issue / PR，并要求读取：
 
