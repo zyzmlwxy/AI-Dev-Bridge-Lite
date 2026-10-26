@@ -24,6 +24,18 @@ It requires no background daemon, database, webhook, or local installation for t
 
    > Connect to `https://github.com/OWNER/REPO` as the execution agent. Read `AGENTS.md` and the current task PR, verify its exact commit SHA, run real builds/tests in the authorized local environment, and report actual exit codes. If the connector cannot access a private repository or post a PR comment, use an existing authorized Git + SSH configuration and write a sanitized report under `.ai-collab/reports/` in the same PR branch. Do not change main, install software without permission, merge, or deploy.
 
+## V1.1: One PR link for each handoff
+
+V1.1 adds consistent task states, a short PR handoff card, numbered test attempts, failure categories, and safe retry instructions to the original single-file protocol. No daemon, external database, or automatic agent-to-agent wake-up is added.
+
+- ChatGPT records requirements, acceptance checks, and real build/test commands in a `[AI_DEV_BRIDGE_HANDOFF]` block in the PR description.
+- Send WorkBuddy only **"Execute this PR: https://github.com/OWNER/REPO/pull/12"**. It must read `AGENTS.md` and the PR, resolve the latest full head SHA, run the authorized checks, and write a sanitized report.
+- Send ChatGPT only **"Review this PR: https://github.com/OWNER/REPO/pull/12"**. It should locate the latest report from PR comments or changed files, verify the tested SHA and the later report commit, and decide the next state.
+- Failures are classified as `CODE`, `TEST`, `ENVIRONMENT`, `PERMISSION` or `UNKNOWN`. Actual code/test fixes need a new head SHA and a retest; missing tools/permissions become `BLOCKED`. Report filenames contain an attempt number to preserve history.
+- If a task still fails after three execution attempts, request human review rather than performing unbounded retries.
+
+The new protocol is still contained in the same root-level `AGENTS.md`. An Issue/PR and user-started AI conversations remain the coordination mechanism.
+
 ## Workflow
 
 ```text
