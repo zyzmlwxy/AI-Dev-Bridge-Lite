@@ -193,5 +193,65 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertEqual(choice, path2)
 
 
+    def test_valid_windows_crlf_report(self):
+        data = gate.parse_report(report().replace("\n", "\r\n"), REPO, PR, PATH)
+        self.assertEqual(data["overall"], "PASS")
+
+    def test_build_pass_with_failed_build_exit_is_invalid(self):
+        broken = report().replace(
+            "Build: N/A", "Build: PASS\nBuild command: make\nBuild exit code: 1"
+        )
+        with self.assertRaisesRegex(gate.EvidenceError, "Build PASS"):
+            gate.parse_report(broken, REPO, PR, PATH)
+
+    def test_build_pass_without_execution_details_is_invalid(self):
+        with self.assertRaisesRegex(gate.EvidenceError, "Build PASS"):
+            gate.parse_report(report().replace("Build: N/A", "Build: PASS"),
+                              REPO, PR, PATH)
+
+    def test_build_only_success_with_tests_na(self):
+        valid = report(tests="N/A", exit_code="N/A", command="N/A").replace(
+            "Build: N/A", "Build: PASS\nBuild command: make test\nBuild exit code: 0"
+        )
+        data = gate.parse_report(valid, REPO, PR, PATH)
+        self.assertEqual(data["build"], "PASS")
+        self.assertEqual(data["tests"], "N/A")
+        self.assertEqual(data["overall"], "PASS")
+
+    def test_all_checks_na_cannot_claim_success(self):
+        invalid = report(tests="N/A", exit_code="N/A", command="N/A")
+        with self.assertRaisesRegex(gate.EvidenceError, "Overall PASS"):
+            gate.parse_report(invalid, REPO, PR, PATH)
+
+    def test_failed_build_cannot_claim_overall_success(self):
+        invalid = report().replace(
+            "Build: N/A", "Build: FAIL\nBuild command: make\nBuild exit code: 2"
+        )
+        with self.assertRaisesRegex(gate.EvidenceError, "Overall PASS"):
+            gate.parse_report(invalid, REPO, PR, PATH)
+
+    def test_build_field_is_required(self):
+        invalid = report().replace("Build: N/A\n", "")
+        with self.assertRaisesRegex(gate.EvidenceError, "Missing fields"):
+            gate.parse_report(invalid, REPO, PR, PATH)
+
+    def test_build_blocked_with_zero_exit_rejected(self):
+        invalid = report(tests="BLOCKED", exit_code="NOT RUN",
+                         overall="BLOCKED", failure="PERMISSION").replace(
+            "Build: N/A", "Build: BLOCKED\nBuild command: tool\nBuild exit code: 0"
+        )
+        with self.assertRaisesRegex(gate.EvidenceError, "Build BLOCKED"):
+            gate.parse_report(invalid, REPO, PR, PATH)
+
+    def test_not_run_tests_cannot_be_overall_pass_even_with_build_pass(self):
+        invalid = report(tests="NOT RUN", exit_code="NOT RUN",
+                         command="NOT RUN").replace(
+            "Build: N/A", "Build: PASS\nBuild command: make\nBuild exit code: 0"
+        )
+        with self.assertRaisesRegex(gate.EvidenceError, "Overall PASS"):
+            gate.parse_report(invalid, REPO, PR, PATH)
+
+
+
 if __name__ == "__main__":
     unittest.main()
