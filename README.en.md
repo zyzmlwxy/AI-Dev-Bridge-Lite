@@ -38,6 +38,17 @@ The V1.1 handoff was exercised in three real WorkBuddy Git + SSH attempts: an in
 
 The new protocol is still contained in the same root-level `AGENTS.md`. An Issue/PR and user-started AI conversations remain the coordination mechanism.
 
+## V1.2 candidate: optional GitHub-native PR notifications
+
+The V1.1 single-file flow remains fully supported. V1.2 offers an **opt-in** GitHub Actions workflow that leaves comments on eligible same-repository, non-draft PRs with an `[AI_DEV_BRIDGE_HANDOFF]` block:
+
+- `CODE_READY` for an eligible PR or substantive source/configuration change. Next actor: WorkBuddy.
+- `REVIEW_PENDING` when a commit adds **only immutable, correctly named execution report files**. Next actor: ChatGPT.
+- Duplicate comments for the same event type and exact PR head SHA are suppressed. Notifications do not assert test success or start either AI.
+
+To opt in, copy `.github/workflows/ai-dev-bridge-notify.yml` and `.github/scripts/bridge_notify.py` into the target repository, review their permissions and enable GitHub Actions PR-comment rights (`issues: write` token permissions). The notifier uses Python's standard library and repository-local GitHub APIs; no backend server or webhook receiver is needed. Draft and fork PRs are deliberately skipped. Repositories that cannot grant comment permissions can continue using the manual V1.1 handoff.
+
+Run local offline checks in this repo with `python3 -m unittest discover -s tests -p 'test_bridge_notify.py' -v`. This is an **unreleased candidate**, not a claim of verified GitHub notification delivery or autonomous agent execution.
 ## Workflow
 
 ```text
