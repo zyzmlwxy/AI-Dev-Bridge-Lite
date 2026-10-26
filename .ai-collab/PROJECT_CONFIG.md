@@ -11,15 +11,16 @@ This file is intended to be read from the trusted base branch (`main`) only. A c
 | Key | Value | Meaning |
 |---|---|---|
 | `schema_version` | `1` | Configuration contract version |
-| `repository_allowlist` | `zyzmlwxy/AI-Dev-Bridge-Lite` | Exact repository allowed for task discovery |
+| `repository_allowlist` | `["zyzmlwxy/AI-Dev-Bridge-Lite"]` | Exact repository allowlist array |
 | `base_branch` | `main` | Only this base branch is eligible |
 | `required_opt_in_label` | `ai-bridge:execute` | Explicit task opt-in; not an execution grant by itself |
 | `execution_enabled` | `false` | Hard stop: no project command may run |
 | `workspace_profile` | `UNCONFIGURED` | No local workspace is approved yet |
 | `allowed_commands` | `[]` | Empty allowlist: no project command is authorized |
-| `working_directory` | `UNCONFIGURED` | Must be configured and verified before execution |
+| `workspace_root` | `null` | No local workspace has been approved |
+| `working_directory` | `null` | Must be configured and verified before execution |
 | `command_timeout_seconds` | `60` | Conservative default; applies only after explicit enablement |
-| `writable_paths` | `.ai-collab/reports/` | Report-only path after separately approved execution; no source writes |
+| `writable_paths` | `[".ai-collab/reports/"]` | Report-only path array after separately approved execution; no source writes |
 | `report_contract` | `V1.3` | Must satisfy the V1.3 evidence/report gate |
 | `retry_policy` | `NO_AUTOMATIC_RETRY` | Uncertain or failed runs require reconciliation and human approval |
 | `deployment` | `DISABLED` | No deployment, release, or merge authorization |
