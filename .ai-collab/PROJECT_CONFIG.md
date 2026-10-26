@@ -2,6 +2,8 @@
 
 Status: **fail-closed baseline; execution disabled**
 
+**Machine-readable source of truth:** `.ai-collab/PROJECT_CONFIG.json` is authoritative for executor parsing. This Markdown file is the human-readable explanation and must be kept consistent with the JSON. The executor must parse and validate JSON strictly; it must not scrape this Markdown table to obtain execution settings. If the JSON is missing, invalid, has an unsupported schema version, contains unknown safety-critical values, or conflicts with this document, execution is `BLOCKED`.
+
 This file is intended to be read from the trusted base branch (`main`) only. A candidate PR must not use changes it proposes to this file to authorize its own execution. This configuration becomes trusted policy only after review and merge.
 
 ## Configuration
