@@ -14,6 +14,7 @@ Last updated: 2026-10-27
 - The latest reported local environment probe found a valid, clean Git checkout and a usable Python interpreter through an explicit executable path.
 - That checkout was on a PR #16 conflict-candidate branch, not an approved execution branch/worktree. It is **not approved for running project tasks**.
 - Native PowerShell command resolution did not find Git and the literal `python` command resolved to a Microsoft Store stub. Do not change system/user `PATH` automatically; configure and verify explicit executable paths if needed.
+- `.ai-collab/PROJECT_CONFIG.json` is the machine-readable configuration source of truth; `.ai-collab/PROJECT_CONFIG.md` explains it for humans. Both are fail-closed additions in the current design PR and are **not trusted base-branch policy until the PR is reviewed and merged**. JSON currently sets `execution_enabled=false`, `allowed_commands=[]`, and `workspace_profile=UNCONFIGURED`.
 
 ## Current execution gate
 
