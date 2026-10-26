@@ -1,6 +1,6 @@
 # AI Dev Bridge Lite
 
-**零服务、单文件启动的 ChatGPT × WorkBuddy GitHub 开发协作协议（V1.1）。**
+**单文件手动接入、可选 GitHub 自动通知的 ChatGPT × WorkBuddy 协作协议（V1.2.0）。**
 
 [English](README.en.md) · [快速开始](#快速开始) · [协作流程](#协作流程) · [安全边界](#安全边界)
 
@@ -105,7 +105,7 @@ Deployment: DISABLED
 
 **注意：**“一个 PR 链接”减少的是**人工复制指令**，不代表 WorkBuddy 和 ChatGPT 会自动互相通知。新增的 V1.1 重试约定也不是自主循环执行器。跨项目新手仍只需复制根目录的 `AGENTS.md`。
 
-## V1.2 候选：可选的 GitHub 原生自动通知
+## V1.2：可选的 GitHub 原生自动通知
 
 V1.2 在 V1.1 的一链接交接之上，尝试进一步降低人工催促：由 GitHub Actions 对**同仓库、非 Draft、带 `[AI_DEV_BRIDGE_HANDOFF]` 的 PR** 自动写一条通知评论。用户若订阅 PR，可按自己的 GitHub 通知设置收到提醒。
 
@@ -119,15 +119,15 @@ V1.2 在 V1.1 的一链接交接之上，尝试进一步降低人工催促：由
 
 ### 需要额外启用的可选组件
 
-单文件 `AGENTS.md` 依然完全支持 V1.1 人工交接。想启用自动评论通知时，仓库负责人需额外审查并复制以下两个文件到目标仓库同名路径，然后启用允许 GitHub Actions 给 PR 留言的仓库权限：
+单文件 `AGENTS.md` 依然完全支持 V1.1 人工交接。想启用自动评论通知时，仓库负责人需额外审查并复制以下两个文件到目标仓库同名路径，然后审核工作流内的最小权限声明（`contents: read`、`issues: write`、`pull-requests: write`）；保留仓库默认权限设置即可，实际权限受 GitHub 策略限制：
 
 - `.github/workflows/ai-dev-bridge-notify.yml` — 使用 `pull_request`，仅在同仓库且非 Draft PR 执行。
 - `.github/scripts/bridge_notify.py` — 只通过 GitHub API 查询变更和留言，依赖 Python 标准库，无需外部服务或令牌配置。
 
 提示：仓库若限制 `GITHUB_TOKEN` 写权限，工作流可能报 403 并无法留言；不能绕过权限。对于来自 Fork 的 PR，通知任务直接跳过。可用 `python3 -m unittest discover -s tests -p 'test_bridge_notify.py' -v` 执行本仓库的离线验证用例。
 
-这仍是开发中的 **V1.2 候选**，GitHub Actions 的实测通知效果以对应工作流和 WorkBuddy 报告为准。若 Actions 禁用，照旧按 V1.1 手动把 PR 链接交给两个 AI。
-## 跨会话恢复
+**V1.2 实测结果：** WorkBuddy 在 Windows 11 / Python 3.13.14 环境执行语法检查与 18/18 单测，GitHub CI 同样 18/18 通过；GitHub Actions 实际发布 `CODE_READY` 和报告回传后的 `REVIEW_PENDING` 评论，按完整 SHA 去重也已验证。原先的 403 由用户批准的**工作流局部** `pull-requests: write` 调整解决，没有修改仓库全局权限。见 [PR #7 验收记录](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/pull/7#issuecomment-6407513665)。若目标仓库 Actions 禁用或缺权限，照旧按 V1.1 手动交接。
+\n## 跨会话恢复
 
 每次重开 ChatGPT / WorkBuddy 会话时，只需提供仓库 URL 或关联 Issue / PR，并要求读取：
 
