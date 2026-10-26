@@ -5,6 +5,9 @@ on:
     types: [opened, reopened, edited, ready_for_review, synchronize]
     paths:
       - '.ai-collab/reports/**'
+      - '.ai-collab/PROJECT_CONFIG.json'
+      - '.ai-collab/PROJECT_CONFIG.md'
+      - 'tests/test_project_config.py'
       - '.github/scripts/bridge_evidence.py'
       - '.github/workflows/ai-dev-bridge-evidence.yml'
       - 'tests/test_bridge_evidence.py'
@@ -32,6 +35,8 @@ jobs:
           persist-credentials: false
       - name: Syntax check
         run: python3 -m py_compile .github/scripts/bridge_evidence.py
+      - name: Project config fail-closed contract tests
+        run: python3 -m unittest discover -s tests -p 'test_project_config.py' -v
       - name: Offline evidence gate regression suite (when installed)
         if: ${{ hashFiles('tests/test_bridge_evidence.py') != '' }}
         run: python3 -m unittest discover -s tests -p 'test_bridge_evidence.py' -v

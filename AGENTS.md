@@ -6,7 +6,7 @@
 
 ## 1. 启动方式与边界
 
-- AI 开始任务时先读取本文件、仓库实际默认分支、相关 Issues / Pull Requests、`.ai-collab/PROJECT_CONFIG.md` 和 `.ai-collab/PROJECT_STATUS.md`（若存在）。
+- AI 开始任务时先读取本文件、仓库实际默认分支、相关 Issues / Pull Requests、`.ai-collab/PROJECT_CONFIG.json`（若存在）、`.ai-collab/PROJECT_CONFIG.md` 和 `.ai-collab/PROJECT_STATUS.md`（若存在）。若两种配置文件同时存在，JSON 是自动化执行器的机器可读权威配置，Markdown 仅用于解释；JSON 缺失、无效、版本不支持或与安全策略说明冲突时，必须对执行 fail closed。
 - 如果当前任务是初始化，先观察项目已有代码、原有规范、权限和工作流，再最小化增补协作文件；**可重复执行，不覆盖已有文件，不覆盖项目的既定规范**。
 - 不论仓库为 Public 还是 Private，均须通过已授予的合法 GitHub 权限访问；连接器显示“已连接”不代表可以读写该仓库。
 - 本文件是仓库内协作指令，**不是后台常驻服务**：没有触发器时，两侧由用户启动任务，不得声称自动唤醒或持续监听。
@@ -40,7 +40,8 @@
 
 若项目尚无 `.ai-collab/` 协作状态，创建**一个独立初始化 PR**，在分支内按需加入：
 
-- `.ai-collab/PROJECT_CONFIG.md`：仓库标识、实际稳定分支、语言／框架、构建命令、测试命令、真实环境、部署策略（默认 `DISABLED`）、保密约束、角色权限。未知字段写 `UNKNOWN`，不猜测。
+- `.ai-collab/PROJECT_CONFIG.md`：供人审查的项目配置说明，包含仓库标识、稳定分支、构建／测试命令、环境、部署策略（默认 `DISABLED`）、保密约束和角色权限。未知字段写 `UNKNOWN`，不猜测。
+- `.ai-collab/PROJECT_CONFIG.json`（自动执行场景）：机器可读的权威配置；严格校验 schema 版本和字段类型。仅当项目启用自动执行时需要；不能用 Markdown 文本替代机器校验。 本仓库通过 `tests/test_project_config.py` 校验配置键、类型、关闭执行的安全默认值及 Markdown 说明的一致性；该测试由证据预检工作流执行。
 - `.ai-collab/PROJECT_STATUS.md`：当前目标、任务 Issue / PR、已知决定、阻塞项、下一步、最近一次**受测 SHA 和报告链接**。用简短事实代替复制聊天记录。
 - `.gitignore`：仅在必要时补充本机产物排除规则（例如 `.workbuddy/`、凭据、日志、构建产物）；已有规则应合并，绝不盲目替换。
 - 保留现有 `AGENTS.md`；如果它已具有独立团队规范，未经确认不得覆盖或删除。

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "repository_allowlist": [
+    "zyzmlwxy/AI-Dev-Bridge-Lite"
+  ],
+  "base_branch": "main",
+  "required_opt_in_label": "ai-bridge:execute",
+  "execution_enabled": false,
+  "workspace_profile": "UNCONFIGURED",
+  "workspace_root": null,
+  "allowed_commands": [],
+  "working_directory": null,
+  "command_timeout_seconds": 60,
+  "writable_paths": [
+    ".ai-collab/reports/"
+  ],
+  "report_contract": "V1.3",
+  "retry_policy": "NO_AUTOMATIC_RETRY",
+  "deployment": "DISABLED",
+  "executor_profile": "SINGLE_ACTIVE_EXECUTOR",
+  "multi_executor_mode": "DEFERRED"
+}
