@@ -1,0 +1,55 @@
+name: Publish AI Dev Bridge Lite v1.1.0 (one-time)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-v1.1.0.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.repository == 'zyzmlwxy/AI-Dev-Bridge-Lite'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create exact-commit tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TARGET_SHA: 97b21958113943603d305a374a70558b0b99b63f
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/${GH_REPO}/commits/${TARGET_SHA}" --jq '.sha')" = "$TARGET_SHA"
+          if gh release view v1.1.0 -R "$GH_REPO" >/dev/null 2>&1; then
+            echo 'Release v1.1.0 already exists; refusing to modify it.'
+            exit 0
+          fi
+          if gh api "repos/${GH_REPO}/git/ref/tags/v1.1.0" >/dev/null 2>&1; then
+            echo 'Tag v1.1.0 exists without a Release; refusing to change or overwrite it.'
+            exit 1
+          fi
+          cat > release-notes.md <<'NOTES'
+          ## AI Dev Bridge Lite v1.1.0
+
+          Portable single-file GitHub collaboration protocol for ChatGPT and WorkBuddy.
+
+          ### What's new
+          - Short, standardized `[AI_DEV_BRIDGE_HANDOFF]` blocks: share a PR link instead of pasting detailed execution instructions.
+          - Task states and evidence-based transitions, including `FIX_REQUIRED`, `BLOCKED`, and `VERIFIED`.
+          - Immutable execution reports with attempt numbers, full tested SHA, commands, exit codes and failure categories.
+          - Git + SSH fallback when WorkBuddy's GitHub integration cannot comment, plus backward compatibility with V1.0.
+          - Bilingual docs and documented cross-platform CRLF handling during test checks.
+
+          ### Verified scope
+          Three real WorkBuddy attempts: first two failures accurately reported, followed by a passing committed-HEAD check. GitHub report-commit SHA comparisons independently verified by ChatGPT.
+
+          This is a workflow protocol release (build N/A), not proof of autonomous orchestration, production deployment, or general-purpose project test compatibility.
+
+          ### Source
+          [PR #3](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/pull/3) · [CHANGELOG](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/blob/main/CHANGELOG.md)
+          NOTES
+          gh release create v1.1.0 --repo "$GH_REPO" --target "$TARGET_SHA" --title 'AI Dev Bridge Lite v1.1.0' --notes-file release-notes.md --latest
+          echo "Published v1.1.0 at $TARGET_SHA"
