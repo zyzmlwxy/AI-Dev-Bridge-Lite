@@ -254,6 +254,14 @@ Deployment: DISABLED
 5. **回传与闭环：** 接收方按任务指定路径交付报告（只读阶段可仅在聊天中返回）；发送方核对真实 GitHub 证据，再更新现有 Issue/PR。失败时标 `BLOCKED/UNKNOWN` 并提供最小可复制的诊断入口，不重复发送冗长配置步骤，不猜测或自行修复凭据。
 6. **兼容性：** 如果项目只有单个 `AGENTS.md`、没有 `.ai-collab/handoffs/`，仍可使用 V1.1 的简短 PR 交接卡或已有 Issue 描述；没有可读 Git 引用时应明确 `BLOCKED`，不能假装已经持久化。此功能是人工交接体验优化，**不是 AI 自动唤醒或本地执行器**。
 
+**WorkBuddy → ChatGPT 出站交接（必须可在全新 WorkBuddy 会话执行）：**
+
+- 本规则**双向适用**：当 WorkBuddy 需要把详细任务交给 ChatGPT，WorkBuddy 自己负责在对应 GitHub 仓库保存**完整、脱敏**的交接指令，核实实际可访问的文件/Issue/PR 和远端完整 SHA，然后只向用户返回**一句**含已验证链接的提示词。用户不承担手动提交 Git 或重述长提示词的工作。
+- **不得依赖上轮会话记忆**：先读可信 `main` 的本文件、项目 JSON 配置、当前状态、Issue/PR 及 `.ai-collab/WORKBUDDY_GIT_HANDOFF_RUNBOOK.md`；如果尚未安装该手册，用本节最低步骤及现有 Git/SSH 安全规范操作。重新确认当前环境是否有 Git/SSH、已经获批的干净文档工作区和写权限，不能把旧的成功当作本轮通过。
+- **恢复 Git 写回的最低顺序**：通过已授权的 GitHub 连接器写入，或检查已有的 Git+SSH over 443（需要验证 GitHub 主机指纹；不得跳过验证）→ 在既有的**获批文档工作区**读回 `main`、检查当前分支及状态 → 在**独立文档分支**只新增/更新指定交接文件 → 检查 diff/敏感信息 → 常规 commit 与**非强制** push → 使用 `git ls-remote` / GitHub 再次核对实际远端分支 SHA 与文件可读性 → 创建/关联 PR（若具备权限）并回传短链接。**具体 PowerShell/Git 命令、Windows 路径探测、连接器 `auth-required` 回退、无权限时的 BLOCKED 处理**在 `.ai-collab/WORKBUDDY_GIT_HANDOFF_RUNBOOK.md` 中完整记录；不得要求新会话自行猜命令或重配 SSH 密钥/PATH。
+- **写入权限须另行成立**：已有只读任务（例如 Issue #19 Stage A）、未批准的工作区、无写权限、私有仓库无法分享给接收方，都不能自动升级为“可创建分支/提交”。Git 文档工作流**不是** `PROJECT_CONFIG.json` 的自动命令执行白名单，也不许可本地项目构建、部署、合并 `main`、强推、安装或破坏性操作。没有获批写入条件时只报 `BLOCKED`，不虚构 Git 链接、PR 或已成功推送。
+- **模板与可复现验证**：`.ai-collab/handoffs/TEMPLATE-WORKBUDDY-TO-CHATGPT.md` 提供完整交接结构；[Issue #21](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/issues/21) 和 `.ai-collab/handoffs/ISSUE-21-WORKBUDDY-REVERSE-HANDOFF-PROBE.md` 可用于独立的、经授权的纯文档回传验证。**规范存在 ≠ WorkBuddy 写回已实测**；实测前应标记 `NOT TESTED`。
+
 **最短可复制格式：** `执行任务：<已验证的 GitHub 文件 URL>。按其中的边界操作并回传结果。`
 
 
