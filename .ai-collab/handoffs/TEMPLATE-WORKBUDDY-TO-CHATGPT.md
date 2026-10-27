@@ -2,10 +2,13 @@
 
 > Copy into `.ai-collab/handoffs/ISSUE-<N>-CHATGPT-<slug>.md` **only when the owner authorized a doc-only Git write**. This template **is not an executable instruction**, and must not be sent unfilled as if complete.
 >
-> Read `AGENTS.md` §6.1 / §7.6 and `.ai-collab/WORKBUDDY_GIT_HANDOFF_RUNBOOK.md` on trusted main first. All data below must be derived from newly checked GitHub evidence, not forgotten conversation history.
+> Read `AGENTS.md` §6.1 / §7.6 / §7.7 and `.ai-collab/WORKBUDDY_GIT_HANDOFF_RUNBOOK.md` on trusted main first. All data below must be derived from newly checked GitHub evidence, not forgotten conversation history.
 
 ## Identity and task
 
+- Handoff base ID: `<PROJECT>-<TASK>-H<NN>` (registered in the project's existing Issue/PR log; same base ID for both agents)
+- Recipient-specific prompt ID: `[<PROJECT>-<TASK>-H<NN>-GPT]` (the receiver is ChatGPT; pair with `...-WB` when applicable)
+- Hand-off / retry attempt: `<first dispatch / same-ID reforward / explicitly authorized -R02>`
 - Sending agent: WorkBuddy
 - Receiving agent: ChatGPT
 - Target repository: `<owner/repo>`
@@ -18,6 +21,9 @@
 - Handoff document state: `<branch + PR status, e.g. OPEN/UNMERGED, or main MERGED>`
 
 ## Facts and evidence
+
+- Dispatch status on source Issue/PR: `<ISSUED / ACKED / IN_PROGRESS / PASS / FAIL / BLOCKED>`; latest evidence link `<URL>`; **never rerun side effects after PASS for the same ID**.
+
 
 | Fact / claim | Evidence grade | Direct source / real output | Checked at |
 |---|---|---|---|
@@ -51,6 +57,6 @@
 
 ## Short user message (give **only after** remote verification)
 
-> 请查看 `<GitHub Issue/PR/verified handoff file URL>`，按其中 WorkBuddy 已保存的完整交接内容完成本阶段任务，先核对当前 GitHub SHA 与可信配置，再回报结果。
+> `[<PROJECT>-<TASK>-H<NN>-GPT]` 请查看 `<GitHub Issue/PR/verified handoff file URL>`，按其中 WorkBuddy 已保存的完整交接内容完成本阶段任务，先核对当前 GitHub SHA 与可信配置，再回报**同一编号**的状态及结果。
 
 If no verified accessible GitHub URL exists, **do not** send this as though the document were saved. Return a `BLOCKED` diagnostic and request only the minimum missing permission/approval.
