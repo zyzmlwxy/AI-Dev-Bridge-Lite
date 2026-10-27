@@ -30,8 +30,8 @@
 
 - Actual actions performed and effect: 用户在本会话显式授权 Step 2。在既有工作区从 `origin/main` 新建分支 `docs/workbuddy-handoff-proof-21`；新增唯一文件 `.ai-collab/handoffs/ISSUE-21-CHATGPT-WORKBUDDY-PROOF.md`（基于模板、已脱敏）；仅暂存该单文件；普通 commit（非 --amend/--force）；仅 push 该分支；远端 SHA 回读；经 Web/API 确认文件可读。未合并、未部署、未改凭据、未跑项目命令。
 - Tested commit SHA: `61b38d8d1134e8bc9f6a03238e2795e1c6260d38`（main 基线）
-- Report commit SHA: <COMMIT_SHA>
-- Current PR HEAD: <REMOTE_SHA>
+- Report commit SHA: 74e560c58a1924c34f0ed99a92dff5e120b77e34
+- Current PR HEAD: 74e560c58a1924c34f0ed99a92dff5e120b77e34
 - Known blockers, failures and retry risk: 环境无 GitHub API 凭据（MCP 连接器 `auth-required`、`gh` 未安装），故 PR 无法经 API 自动创建；已回退为提供分支文件链接与 compare 链接，用户可点击创建。推送本身已成功（Git+SSH 已认证）。
 - Existing task/PR already completed: PR #22 已合并；Step 0/1 只读恢复与连接探测已完成并回传脱敏报告。
 
@@ -46,10 +46,10 @@
 
 ## Commit/read-back facts (filled AFTER real GitHub read-back)
 
-- Local doc-only commit SHA: <COMMIT_SHA>
-- Remote branch/ref + observed remote SHA: `refs/heads/docs/workbuddy-handoff-proof-21` = <REMOTE_SHA>
-- PR URL and status: PR_NOT_CREATED（环境无 API 凭据）；分支文件链接：<FILE_URI>；compare 链接：https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/compare/main...docs/workbuddy-handoff-proof-21?expand=1
-- File URI ChatGPT can read: <FILE_URI>
+- Local doc-only commit SHA: 74e560c58a1924c34f0ed99a92dff5e120b77e34
+- Remote branch/ref + observed remote SHA: `refs/heads/docs/workbuddy-handoff-proof-21` = 74e560c58a1924c34f0ed99a92dff5e120b77e34
+- PR URL and status: PR_NOT_CREATED（环境无 API 凭据）；分支文件链接：https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/blob/docs/workbuddy-handoff-proof-21/.ai-collab/handoffs/ISSUE-21-CHATGPT-WORKBUDDY-PROOF.md；compare 链接：https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/compare/main...docs/workbuddy-handoff-proof-21?expand=1
+- File URI ChatGPT can read: https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/blob/docs/workbuddy-handoff-proof-21/.ai-collab/handoffs/ISSUE-21-CHATGPT-WORKBUDDY-PROOF.md
 - No unrelated file changes / credential leaks: VERIFIED（`git diff --cached --name-only` 仅 1 个文件）
 
 ## Short user message (give only after remote verification)
