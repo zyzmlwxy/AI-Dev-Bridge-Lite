@@ -13,7 +13,7 @@
 - Current phase: REVIEW_PENDING
 - Source-of-truth baseline: `main` @ `61b38d8d1134e8bc9f6a03238e2795e1c6260d38`（核验时间 2026-10-27，Asia/Shanghai）
 - This handoff document location: 本分支 `.ai-collab/handoffs/ISSUE-21-CHATGPT-WORKBUDDY-PROOF.md`（PR 创建后附链接）
-- Handoff document state: 分支 `docs/workbuddy-handoff-proof-21`，PR 待创建（环境无 API 凭据，见下）
+- Handoff document state: 分支 `docs/workbuddy-handoff-proof-21`；「PR 待创建」为 WorkBuddy 当时（无 API 凭据）的历史环境事实——现 PR #23 已由 ChatGPT 经其已连接 GitHub 创建，仍为 DRAFT（未经合并授权，见下方 PR URL and status）
 
 ## Facts and evidence
 
@@ -30,8 +30,8 @@
 
 - Actual actions performed and effect: 用户在本会话显式授权 Step 2。在既有工作区从 `origin/main` 新建分支 `docs/workbuddy-handoff-proof-21`；新增唯一文件 `.ai-collab/handoffs/ISSUE-21-CHATGPT-WORKBUDDY-PROOF.md`（基于模板、已脱敏）；仅暂存该单文件；普通 commit（非 --amend/--force）；仅 push 该分支；远端 SHA 回读；经 Web/API 确认文件可读。未合并、未部署、未改凭据、未跑项目命令。
 - Tested commit SHA: `61b38d8d1134e8bc9f6a03238e2795e1c6260d38`（main 基线）
-- Report commit SHA: 74e560c58a1924c34f0ed99a92dff5e120b77e34
-- Current PR HEAD: 74e560c58a1924c34f0ed99a92dff5e120b77e34
+- 历史首次 push/read-back 提交 SHA（immutable first commit，非当前 HEAD）: 74e560c58a1924c34f0ed99a92dff5e120b77e34
+- Branch HEAD（实时）: 请查询此 PR 的 head/ref，或运行 `git ls-remote --heads origin docs/workbuddy-handoff-proof-21`；GitHub 观察快照（PR #23 审查时，2026-10-27）：cc3c4834c947817f59bc7eae7834ce6d76a3e325（此为当时观察值、非永久不变；本次更正提交后该值即变化，请以实时查询结果为准）
 - Known blockers, failures and retry risk: 环境无 GitHub API 凭据（MCP 连接器 `auth-required`、`gh` 未安装），故 PR 无法经 API 自动创建；已回退为提供分支文件链接与 compare 链接，用户可点击创建。推送本身已成功（Git+SSH 已认证）。
 - Existing task/PR already completed: PR #22 已合并；Step 0/1 只读恢复与连接探测已完成并回传脱敏报告。
 
@@ -46,12 +46,12 @@
 
 ## Commit/read-back facts (filled AFTER real GitHub read-back)
 
-- Local doc-only commit SHA: 74e560c58a1924c34f0ed99a92dff5e120b77e34
-- Remote branch/ref + observed remote SHA: `refs/heads/docs/workbuddy-handoff-proof-21` = 74e560c58a1924c34f0ed99a92dff5e120b77e34
-- PR URL and status: PR_NOT_CREATED（环境无 API 凭据）；分支文件链接：https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/blob/docs/workbuddy-handoff-proof-21/.ai-collab/handoffs/ISSUE-21-CHATGPT-WORKBUDDY-PROOF.md；compare 链接：https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/compare/main...docs/workbuddy-handoff-proof-21?expand=1
+- 首次 doc-only commit SHA（immutable first commit）: 74e560c58a1924c34f0ed99a92dff5e120b77e34
+- 首次 push/read-back 观察远端 SHA（historical snapshot）: `refs/heads/docs/workbuddy-handoff-proof-21` = 74e560c58a1924c34f0ed99a92dff5e120b77e34；当前 HEAD 见上方「Branch HEAD（实时）」，请以实时查询为准
+- PR URL and status: `PR_NOT_CREATED` 为 WorkBuddy 当时（无 API 凭据）的历史环境事实，不代表当前状态；现 PR #23 [docs(handoff): verify WorkBuddy-to-ChatGPT Git write-back (Issue #21)](https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/pull/23) 已由 ChatGPT 创建，状态 DRAFT（未经合并授权）。分支文件链接：https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/blob/docs/workbuddy-handoff-proof-21/.ai-collab/handoffs/ISSUE-21-CHATGPT-WORKBUDDY-PROOF.md；compare 链接：https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/compare/main...docs/workbuddy-handoff-proof-21?expand=1
 - File URI ChatGPT can read: https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/blob/docs/workbuddy-handoff-proof-21/.ai-collab/handoffs/ISSUE-21-CHATGPT-WORKBUDDY-PROOF.md
 - No unrelated file changes / credential leaks: VERIFIED（`git diff --cached --name-only` 仅 1 个文件）
 
 ## Short user message (give only after remote verification)
 
-> 请查看 `<FILE_URI 或 PR 链接>`，按其中 WorkBuddy 已保存的完整交接内容完成本阶段任务，先核对当前 GitHub SHA 与可信配置，再回报结果。
+> 请 ChatGPT 验收 Issue #21 WorkBuddy Git 交接：https://github.com/zyzmlwxy/AI-Dev-Bridge-Lite/pull/23；先核对该 PR 最新 SHA、唯一文件 diff 和可信安全配置，回传结果。
