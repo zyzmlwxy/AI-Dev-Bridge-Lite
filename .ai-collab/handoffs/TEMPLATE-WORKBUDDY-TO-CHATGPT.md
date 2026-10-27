@@ -6,9 +6,12 @@
 
 ## Identity and task
 
-- Handoff base ID: `<PROJECT>-<TASK>-H<NN>` (registered in the project's existing Issue/PR log; same base ID for both agents)
-- Recipient-specific prompt ID: `[<PROJECT>-<TASK>-H<NN>-GPT]` (the receiver is ChatGPT; pair with `...-WB` when applicable)
-- Hand-off / retry attempt: `<first dispatch / same-ID reforward / explicitly authorized -R02>`
+- Parent task key: `<PROJECT>-<TASK>` (stable across follow-ups; find in trusted Issue/PR)
+- New instruction H allocation: `<next unused HNN for this parent task, freshly recorded before user-forwarded new instruction>`
+- Parent/prior instruction ID: `<full previous ID or NONE>`
+- Handoff base ID: `<PROJECT>-<TASK>-H<NN>` (unique for **this distinct instruction**; reused only for exactly identical reforward or registered paired delivery of the same instruction)
+- Recipient-specific prompt ID: `[<PROJECT>-<TASK>-H<NN>-GPT]` (recipient ChatGPT; `...-WB` names WorkBuddy; different action to either recipient needs a **new HNN**)
+- Hand-off / retry attempt: `<new instruction incl. follow-up/review/fix/retry => fresh HNN; only exact duplicate resend retains old ID; optional R02 attempt metadata does not replace new H>`
 - Sending agent: WorkBuddy
 - Receiving agent: ChatGPT
 - Target repository: `<owner/repo>`
@@ -55,7 +58,9 @@
 - File URI ChatGPT can read: `<verified URL or BLOCKED>`
 - No unrelated file changes / credential leaks: `<VERIFIED with diff or UNKNOWN>`
 
-## Short user message (give **only after** remote verification)
+## Short user message (give **only after** remote verification and new-ID reservation)
+
+A **new** short instruction always uses the next H number, even when it is only a small supplement to the same Issue/PR. If the user is simply resending the *unchanged prior instruction*, reuse its earlier full ID. Record this instruction's link to the previous ID and its ISSUED state in the source Issue first.
 
 > `[<PROJECT>-<TASK>-H<NN>-GPT]` 请查看 `<GitHub Issue/PR/verified handoff file URL>`，按其中 WorkBuddy 已保存的完整交接内容完成本阶段任务，先核对当前 GitHub SHA 与可信配置，再回报**同一编号**的状态及结果。
 
