@@ -50,11 +50,16 @@ If the **previously authorized and verified** SSH connection uses GitHub's SSH-o
 
 ```powershell
 # Optional fallback: Git for Windows/OpenSSH available and host key already trusted.
-$env:GIT_SSH_COMMAND = 'ssh -o BatchMode=yes -o ConnectTimeout=10 -o HostName=ssh.github.com -p 443'
+$PreviousSshCommand = $env:GIT_SSH_COMMAND
 try {
+    $env:GIT_SSH_COMMAND = 'ssh -o BatchMode=yes -o ConnectTimeout=10 -o HostName=ssh.github.com -p 443'
     & $GitExe ls-remote --exit-code $Remote refs/heads/main
 } finally {
-    Remove-Item Env:GIT_SSH_COMMAND -ErrorAction SilentlyContinue
+    if ($null -ne $PreviousSshCommand) {
+        $env:GIT_SSH_COMMAND = $PreviousSshCommand
+    } else {
+        Remove-Item Env:GIT_SSH_COMMAND -ErrorAction SilentlyContinue
+    }
 }
 ```
 
@@ -89,7 +94,9 @@ $File     = '.ai-collab/handoffs/ISSUE-<N>-CHATGPT-<slug>.md'
 & $GitExe ls-remote --heads $Remote "refs/heads/$Branch"
 ```
 
-**Important:** The lines above are a **review checklist**, not a blindly runnable script. STOP before branch creation when the worktree is dirty, points to a wrong repository, origin/main has changed unexpectedly, or branch ownership is uncertain. In a new environment, `fetch`, `switch`, `commit`, and `push` are mutations and require the **separate doc-only write authorization**; a read-only probe must never run them. Verify the remote SHA matches local `HEAD`; on mismatch/ambiguous push, **read remote state and stop**, not force/retry. Never amend another agent's commit, modify `main`, modify automation configuration, or touch unrequested files.
+**SSH-over-443 persistence during an authorized write:** If the read-only probe succeeded **only** with the temporary `GIT_SSH_COMMAND` override, the later `fetch` **and** `push` must use that same verified temporary override too (or the already verified local SSH alias). Set it just before the authorized Git operations, save and restore its prior value using the `try/finally` pattern above. Do not accidentally probe on port 443 and then push via default port 22; do not change any persistent SSH configuration. Do not run the Git write block at all if the connection or host-key verification is still `UNKNOWN/BLOCKED`.
+
+**Important:** The lines above are a **review checklist**, not a blindly runnable script. STOP before branch creation when `git status --porcelain` has any output (dirty worktree), points to a wrong repository, origin/main has changed unexpectedly, or branch ownership is uncertain. In a new environment, `fetch`, `switch`, `commit`, and `push` are mutations and require the **separate doc-only write authorization**; a read-only probe must never run them. Verify the remote SHA matches local `HEAD`; on mismatch/ambiguous push, **read remote state and stop**, not force/retry. Never amend another agent's commit, modify `main`, modify automation configuration, or touch unrequested files. Redact any credential-bearing remote URL from `git remote -v` before saving evidence or quoting output.
 
 If the GitHub connector itself has verified write access, it may create the equivalent **doc-only branch/file/PR** instead; the exact same scope, review and remote read-back rules apply. No need to run Git commands solely for formality.
 
