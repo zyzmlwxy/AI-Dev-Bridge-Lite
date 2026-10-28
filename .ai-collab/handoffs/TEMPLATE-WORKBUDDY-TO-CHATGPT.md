@@ -12,6 +12,8 @@
 - Sending agent: WorkBuddy
 - Receiving agent: ChatGPT
 - Target repository: `<owner/repo>`
+- WorkBuddy local-only private-state file (PATH ONLY; relative to verified project root): `.ai-local/workbuddy/private.json` — **never** attach or paste the file contents, real absolute path, credentials or environment dumps to GitHub/ChatGPT
+- WorkBuddy locally observed private-state status (sanitized; `USER_REPORTED` to ChatGPT): `<PRESENT / ABSENT / UNKNOWN / BLOCKED / NOT_CHECKED>`; file must be under an authorized worktree and ignored/untracked before any write
 - Existing Issue: `<URL>`
 - Existing PR (if any): `<URL or NONE>`
 - Requested outcome: `<bounded next task>`
@@ -21,6 +23,9 @@
 - Handoff document state: `<branch + PR status, e.g. OPEN/UNMERGED, or main MERGED>`
 
 ## Facts and evidence
+
+> GitHub can validate this project's **relative-path contract** but **cannot independently read WorkBuddy's private local file or validate its contents**. Local file presence/access/security status is from WorkBuddy's sanitized report; do not call it GitHub VERIFIED. Credential-store references remain local only; no secret values in handoff.
+
 
 - Dispatch status on source Issue/PR: `<ISSUED / ACKED / IN_PROGRESS / PASS / FAIL / BLOCKED>`; latest evidence link `<URL>`; **never rerun side effects after PASS for the same ID**.
 
@@ -58,5 +63,7 @@
 ## Short user message (give **only after** remote verification)
 
 > `[<PROJECT>-<TASK>-H<NN>-GPT]` 请查看 `<GitHub Issue/PR/verified handoff file URL>`，按其中 WorkBuddy 已保存的完整交接内容完成本阶段任务，先核对当前 GitHub SHA 与可信配置，再回报**同一编号**的状态及结果。
+
+**Private-data rule:** Git/GitHub may carry only the project-relative pointer `.ai-local/workbuddy/private.json` and a sanitized status. Never fill this template with the contents of that local file or any real machine-specific path. See trusted `AGENTS.md` §6.2 and the WorkBuddy runbook §1.1.
 
 If no verified accessible GitHub URL exists, **do not** send this as though the document were saved. Return a `BLOCKED` diagnostic and request only the minimum missing permission/approval.
